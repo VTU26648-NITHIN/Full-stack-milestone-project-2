@@ -1,2003 +1,1159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CampusPulse — Event Hub</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #080c10;
-      --bg2: #0d1117;
-      --bg3: #161b22;
-      --border: #1e2a3a;
-      --accent: #00ff88;
-      --accent2: #00ccff;
-      --accent3: #ff6b35;
-      --accent4: #c678dd;
-      --text: #e6edf3;
-      --muted: #7d8590;
-      --danger: #ff4757;
-      --success: #00ff88;
-      --warning: #ffa502;
-      --card-bg: rgba(22,27,34,0.9);
-      --glow: 0 0 20px rgba(0,255,136,0.15);
-      --glow2: 0 0 20px rgba(0,204,255,0.15);
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TalentBridge – Job Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --amber: #F59E0B;
+    --amber-light: #FCD34D;
+    --dark: #0D0D0D;
+    --panel: #161616;
+    --card: #1E1E1E;
+    --border: #2A2A2A;
+    --muted: #6B7280;
+    --text: #F3F4F6;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: var(--text); margin: 0; min-height: 100vh; overflow-x: hidden; }
+  h1,h2,h3,h4,.font-display { font-family: 'Syne', sans-serif; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+  /* Page transitions */
+  .page { display: none; animation: fadeIn .35s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Scanline overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,0.01) 2px, rgba(0,255,136,0.01) 4px);
-      pointer-events: none;
-      z-index: 9999;
-    }
+  /* Amber glow */
+  .glow { box-shadow: 0 0 30px rgba(245,158,11,.18); }
+  .btn-amber { background: var(--amber); color: #000; font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: .03em; border: none; cursor: pointer; transition: all .2s; }
+  .btn-amber:hover { background: var(--amber-light); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(245,158,11,.4); }
+  .btn-outline { border: 1.5px solid var(--border); background: transparent; color: var(--text); font-family: 'Syne', sans-serif; font-weight: 600; cursor: pointer; transition: all .2s; }
+  .btn-outline:hover { border-color: var(--amber); color: var(--amber); }
 
-    /* Grid bg */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-    }
+  /* Cards */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; transition: border-color .2s, transform .2s; }
+  .card:hover { border-color: rgba(245,158,11,.35); transform: translateY(-2px); }
 
-    /* Ticker */
-    .ticker-wrap {
-      background: var(--accent);
-      overflow: hidden;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      position: relative;
-      z-index: 100;
-    }
-    .ticker-label {
-      background: #000;
-      color: var(--accent);
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 0 14px;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      white-space: nowrap;
-      letter-spacing: 2px;
-      border-right: 2px solid #000;
-      flex-shrink: 0;
-    }
-    .ticker-track {
-      display: flex;
-      animation: ticker 30s linear infinite;
-      white-space: nowrap;
-    }
-    .ticker-item {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: #000;
-      font-weight: 700;
-      padding: 0 40px;
-      letter-spacing: 1px;
-    }
-    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  /* Input */
+  .inp { background: var(--panel); border: 1.5px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 14px; width: 100%; font-family: 'DM Sans', sans-serif; transition: border-color .2s; outline: none; font-size: 14px; }
+  .inp:focus { border-color: var(--amber); }
+  .inp::placeholder { color: var(--muted); }
+  label { font-size: 13px; color: #9CA3AF; font-weight: 500; display: block; margin-bottom: 5px; }
 
-    /* Nav */
-    nav {
-      position: sticky;
-      top: 0;
-      z-index: 500;
-      background: rgba(8,12,16,0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-      height: 60px;
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      justify-content: space-between;
-    }
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-      border: 2px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Space Mono', monospace;
-      font-size: 14px;
-      color: var(--accent);
-      font-weight: 700;
-      position: relative;
-    }
-    .logo-icon::before {
-      content: '';
-      position: absolute;
-      inset: -4px;
-      border: 1px solid rgba(0,255,136,0.2);
-    }
-    .logo-text {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 26px;
-      letter-spacing: 3px;
-      color: var(--text);
-    }
-    .logo-text span { color: var(--accent); }
-    
-    .nav-links {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-    .nav-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 1px;
-      cursor: pointer;
-      padding: 6px 14px;
-      transition: all 0.2s;
-      position: relative;
-      text-transform: uppercase;
-    }
-    .nav-btn:hover, .nav-btn.active { color: var(--accent); }
-    .nav-btn.active::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 14px;
-      right: 14px;
-      height: 2px;
-      background: var(--accent);
-    }
-    .nav-right { display: flex; gap: 10px; align-items: center; }
-    .btn-outline {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      cursor: pointer;
-      padding: 7px 16px;
-      text-transform: uppercase;
-      transition: all 0.2s;
-    }
-    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-primary {
-      background: var(--accent);
-      border: none;
-      color: #000;
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      cursor: pointer;
-      padding: 8px 18px;
-      text-transform: uppercase;
-      transition: all 0.2s;
-    }
-    .btn-primary:hover { background: #00e07a; box-shadow: 0 0 20px rgba(0,255,136,0.4); }
+  /* Badge */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; font-family: 'Syne', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+  .badge-amber { background: rgba(245,158,11,.15); color: var(--amber); border: 1px solid rgba(245,158,11,.3); }
+  .badge-green { background: rgba(34,197,94,.12); color: #4ADE80; border: 1px solid rgba(34,197,94,.25); }
+  .badge-red { background: rgba(239,68,68,.12); color: #F87171; border: 1px solid rgba(239,68,68,.25); }
+  .badge-blue { background: rgba(59,130,246,.12); color: #60A5FA; border: 1px solid rgba(59,130,246,.25); }
+  .badge-gray { background: rgba(107,114,128,.15); color: #9CA3AF; border: 1px solid rgba(107,114,128,.25); }
 
-    /* Page sections */
-    .section { display: none; }
-    .section.active { display: block; }
+  /* Sidebar nav */
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); transition: all .2s; font-family: 'DM Sans', sans-serif; }
+  .nav-item:hover { background: rgba(245,158,11,.08); color: var(--text); }
+  .nav-item.active { background: rgba(245,158,11,.12); color: var(--amber); }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-    /* Hero */
-    .hero {
-      padding: 80px 24px 60px;
-      max-width: 1200px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
-      align-items: center;
-      position: relative;
-      z-index: 1;
-    }
-    @media(max-width:768px) { .hero { grid-template-columns: 1fr; } }
-    
-    .hero-tag {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: var(--accent);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .hero-tag::before { content: '//'; opacity: 0.5; }
-    
-    .hero h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(56px, 8vw, 100px);
-      line-height: 0.9;
-      letter-spacing: 4px;
-      color: var(--text);
-      margin-bottom: 24px;
-    }
-    .hero h1 em {
-      font-style: normal;
-      color: transparent;
-      -webkit-text-stroke: 2px var(--accent);
-    }
-    .hero-desc {
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.7;
-      margin-bottom: 32px;
-      max-width: 440px;
-    }
-    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+  /* Hero gradient mesh */
+  .hero-mesh { background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(245,158,11,.22) 0%, transparent 70%), radial-gradient(ellipse 40% 40% at 80% 60%, rgba(245,158,11,.08) 0%, transparent 60%), var(--dark); }
 
-    /* Live status */
-    .live-panel {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
-    }
-    .live-panel::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent4));
-    }
-    .live-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 2px;
-      color: var(--danger);
-      text-transform: uppercase;
-      margin-bottom: 20px;
-    }
-    .live-dot {
-      width: 8px; height: 8px;
-      background: var(--danger);
-      border-radius: 50%;
-      animation: pulse 1.2s infinite;
-    }
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
+  /* Ticker */
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .ticker-inner { display: flex; animation: ticker 30s linear infinite; white-space: nowrap; }
+  .ticker-inner:hover { animation-play-state: paused; }
 
-    .stat-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-    .stat-box {
-      background: rgba(0,255,136,0.04);
-      border: 1px solid rgba(0,255,136,0.1);
-      padding: 16px;
-    }
-    .stat-num {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 36px;
-      letter-spacing: 2px;
-      color: var(--accent);
-      line-height: 1;
-    }
-    .stat-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
+  /* Stat counter */
+  .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem; color: var(--amber); }
 
-    .next-event-card {
-      border: 1px solid rgba(0,204,255,0.2);
-      background: rgba(0,204,255,0.04);
-      padding: 16px;
-    }
-    .nec-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      color: var(--accent2);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    .nec-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 22px;
-      letter-spacing: 2px;
-      color: var(--text);
-    }
-    .nec-time {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 6px;
-    }
+  /* Toast */
+  #toast { position: fixed; bottom: 28px; right: 28px; z-index: 9999; }
+  .toast-item { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--amber); padding: 14px 20px; border-radius: 10px; margin-top: 10px; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,.5); animation: toastIn .3s ease; min-width: 240px; }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
 
-    /* Countdown */
-    .countdown {
-      display: flex;
-      gap: 12px;
-      margin-top: 12px;
-    }
-    .cd-box {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      text-align: center;
-      flex: 1;
-    }
-    .cd-num {
-      font-family: 'Space Mono', monospace;
-      font-size: 22px;
-      color: var(--accent);
-      font-weight: 700;
-      display: block;
-    }
-    .cd-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 8px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; padding: 32px; animation: fadeIn .25s ease; }
 
-    /* Events Section */
-    .page-header {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 24px 0;
-      position: relative;
-      z-index: 1;
-    }
-    .page-title-row {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .page-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 48px;
-      letter-spacing: 4px;
-      line-height: 1;
-    }
-    .page-title span { color: var(--accent); }
+  /* Progress bar */
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--amber), var(--amber-light)); border-radius: 3px; transition: width .6s ease; }
 
-    /* Filter bar */
-    .filter-bar {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 32px;
-      align-items: center;
-    }
-    .search-box {
-      flex: 1;
-      min-width: 200px;
-      position: relative;
-    }
-    .search-box input {
-      width: 100%;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      padding: 9px 12px 9px 36px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .search-box input::placeholder { color: var(--muted); }
-    .search-box input:focus { border-color: var(--accent); }
-    .search-icon {
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .filter-chip {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      padding: 8px 14px;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: all 0.2s;
-    }
-    .filter-chip:hover, .filter-chip.active { background: rgba(0,255,136,0.1); border-color: var(--accent); color: var(--accent); }
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  td { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid rgba(42,42,42,.6); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
 
-    /* View toggle */
-    .view-toggle {
-      display: flex;
-      border: 1px solid var(--border);
-      overflow: hidden;
-    }
-    .vt-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      padding: 8px 12px;
-      font-size: 14px;
-      transition: all 0.2s;
-      border-right: 1px solid var(--border);
-    }
-    .vt-btn:last-child { border-right: none; }
-    .vt-btn.active { background: rgba(0,255,136,0.1); color: var(--accent); }
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 
-    /* Event Grid */
-    .events-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px 60px;
-      position: relative;
-      z-index: 1;
-    }
-    .events-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 20px;
-    }
-    .events-list { display: flex; flex-direction: column; gap: 12px; }
+  /* Tag chip */
+  .chip { display: inline-block; padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 500; background: rgba(255,255,255,.06); color: #D1D5DB; margin: 2px; }
 
-    /* Event Card */
-    .ev-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      overflow: hidden;
-      transition: all 0.3s;
-      position: relative;
-      cursor: pointer;
-    }
-    .ev-card:hover {
-      border-color: rgba(0,255,136,0.3);
-      box-shadow: var(--glow);
-      transform: translateY(-2px);
-    }
-    .ev-card-img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      display: block;
-      filter: grayscale(20%) brightness(0.8);
-      transition: filter 0.3s;
-    }
-    .ev-card:hover .ev-card-img { filter: grayscale(0%) brightness(0.9); }
+  /* Selected tab */
+  .tab { padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Syne', sans-serif; transition: all .2s; color: var(--muted); }
+  .tab.active { background: rgba(245,158,11,.12); color: var(--amber); }
+  .tab:hover:not(.active) { color: var(--text); }
 
-    .ev-card-top {
-      position: relative;
-    }
-    .ev-card-badges {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      display: flex;
-      gap: 6px;
-    }
-    .badge {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 3px 8px;
-    }
-    .badge-academic { background: rgba(0,204,255,0.9); color: #000; }
-    .badge-cultural { background: rgba(198,120,221,0.9); color: #000; }
-    .badge-sports { background: rgba(0,255,136,0.9); color: #000; }
-    .badge-workshop { background: rgba(255,107,53,0.9); color: #000; }
-    .badge-hot { background: var(--danger); color: #fff; }
+  /* Notification dot */
+  .notif-dot { width: 8px; height: 8px; background: var(--amber); border-radius: 50%; display: inline-block; }
 
-    .ev-vote-bar {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 3px;
-      background: rgba(0,0,0,0.5);
-    }
-    .ev-vote-fill { height: 100%; background: var(--accent); transition: width 0.5s; }
+  /* Avatar */
+  .avatar { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; flex-shrink: 0; }
 
-    .ev-card-body { padding: 18px; }
-    .ev-card-meta {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 1px;
-      margin-bottom: 8px;
-      display: flex;
-      gap: 12px;
-    }
-    .ev-card-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 22px;
-      letter-spacing: 2px;
-      color: var(--text);
-      margin-bottom: 8px;
-      line-height: 1.1;
-    }
-    .ev-card-desc {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-      margin-bottom: 16px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .ev-card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .seats-bar {
-      flex: 1;
-    }
-    .seats-track {
-      height: 3px;
-      background: var(--border);
-      position: relative;
-    }
-    .seats-fill { height: 100%; background: var(--accent); transition: width 0.5s; }
-    .seats-fill.warn { background: var(--warning); }
-    .seats-fill.full { background: var(--danger); }
-    .seats-text {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      color: var(--muted);
-      margin-top: 4px;
-      letter-spacing: 1px;
-    }
-    .ev-actions {
-      display: flex;
-      gap: 6px;
-    }
-    .icon-btn {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      cursor: pointer;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
-    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .icon-btn.active { background: rgba(0,255,136,0.1); border-color: var(--accent); color: var(--accent); }
-    .icon-btn.voted { color: var(--warning); border-color: var(--warning); background: rgba(255,165,2,0.1); }
-    .icon-btn.bookmarked { color: var(--accent2); border-color: var(--accent2); background: rgba(0,204,255,0.1); }
+  /* Checkbox custom */
+  input[type=checkbox] { accent-color: var(--amber); width: 15px; height: 15px; }
 
-    /* List view card */
-    .ev-list-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      padding: 20px;
-      display: flex;
-      gap: 20px;
-      align-items: center;
-      transition: all 0.2s;
-      cursor: pointer;
-    }
-    .ev-list-card:hover { border-color: rgba(0,255,136,0.3); box-shadow: var(--glow); }
-    .ev-list-card img { width: 80px; height: 80px; object-fit: cover; flex-shrink: 0; filter: grayscale(30%); }
-    .ev-list-body { flex: 1; }
-    .ev-list-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--text); }
-    .ev-list-meta { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 4px; }
-    .ev-list-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  /* Range */
+  input[type=range] { accent-color: var(--amber); }
 
-    /* MODAL */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(4px);
-      z-index: 800;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal-box {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      max-width: 680px;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      position: relative;
-    }
-    .modal-box::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-    }
-    .modal-header {
-      padding: 24px 24px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 28px;
-      letter-spacing: 3px;
-      color: var(--text);
-    }
-    .modal-close {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      cursor: pointer;
-      width: 32px; height: 32px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-      transition: all 0.2s;
-    }
-    .modal-close:hover { border-color: var(--danger); color: var(--danger); }
-    .modal-body { padding: 24px; }
+  /* Select */
+  select.inp { cursor: pointer; }
 
-    /* Event Detail Modal */
-    .ev-detail-img {
-      width: 100%;
-      height: 240px;
-      object-fit: cover;
-      display: block;
-      filter: brightness(0.7);
-    }
-    .ev-detail-cats {
-      display: flex;
-      gap: 8px;
-      padding: 16px 24px 0;
-      flex-wrap: wrap;
-    }
-    .ev-detail-body { padding: 16px 24px 24px; }
-    .ev-detail-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 36px;
-      letter-spacing: 3px;
-      line-height: 1;
-      margin-bottom: 12px;
-    }
-    .ev-info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .ev-info-box {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      padding: 12px;
-    }
-    .ev-info-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .ev-info-val {
-      font-family: 'Space Mono', monospace;
-      font-size: 13px;
-      color: var(--text);
-      font-weight: 700;
-    }
-
-    /* QR Ticket */
-    .qr-section {
-      border: 1px solid rgba(0,255,136,0.2);
-      background: rgba(0,255,136,0.03);
-      padding: 20px;
-      margin-top: 16px;
-      display: none;
-    }
-    .qr-section.visible { display: block; }
-    .qr-box {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .qr-code {
-      width: 100px; height: 100px;
-      background: white;
-      display: grid;
-      grid-template-columns: repeat(7,1fr);
-      gap: 2px;
-      padding: 8px;
-      flex-shrink: 0;
-    }
-    .qr-pixel { background: #000; border-radius: 1px; }
-    .qr-pixel.white { background: white; }
-    .qr-info { flex: 1; }
-    .qr-title {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      color: var(--accent);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    .qr-id {
-      font-family: 'Space Mono', monospace;
-      font-size: 18px;
-      color: var(--text);
-      font-weight: 700;
-      letter-spacing: 3px;
-    }
-    .qr-name {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 6px;
-    }
-
-    /* Comments */
-    .comments-section { margin-top: 20px; }
-    .comments-title {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: var(--accent);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .comment-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-    .comment-item {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      padding: 12px;
-      border-left: 2px solid var(--accent);
-    }
-    .comment-user {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      color: var(--accent);
-      letter-spacing: 1px;
-      margin-bottom: 4px;
-    }
-    .comment-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
-    .comment-form { display: flex; gap: 8px; }
-    .comment-input {
-      flex: 1;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      padding: 9px 12px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .comment-input:focus { border-color: var(--accent); }
-    .comment-input::placeholder { color: var(--muted); }
-
-    /* Leaderboard */
-    .lb-table { width: 100%; border-collapse: collapse; }
-    .lb-table th {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding: 10px 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-    .lb-table td { padding: 12px 16px; border-bottom: 1px solid rgba(30,42,58,0.5); font-size: 13px; }
-    .lb-rank {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 20px;
-      letter-spacing: 2px;
-    }
-    .lb-rank.gold { color: #FFD700; }
-    .lb-rank.silver { color: #C0C0C0; }
-    .lb-rank.bronze { color: #CD7F32; }
-    .lb-name { font-weight: 600; color: var(--text); }
-    .lb-dept { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); }
-    .lb-points {
-      font-family: 'Space Mono', monospace;
-      font-size: 13px;
-      color: var(--accent);
-      font-weight: 700;
-    }
-    .lb-bar-wrap { display: flex; align-items: center; gap: 8px; }
-    .lb-bar { flex: 1; height: 4px; background: var(--border); }
-    .lb-bar-fill { height: 100%; background: var(--accent); }
-
-    /* Dashboard */
-    .dash-grid {
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 24px 60px;
-      position: relative;
-      z-index: 1;
-    }
-    @media(max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
-    
-    .dash-sidebar {}
-    .user-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      padding: 24px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
-    .user-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--accent);
-    }
-    .user-avatar {
-      width: 64px; height: 64px;
-      border: 2px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 12px;
-      background: rgba(0,255,136,0.05);
-    }
-    .user-avatar-text {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 28px;
-      letter-spacing: 2px;
-      color: var(--accent);
-    }
-    .user-name {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 22px;
-      letter-spacing: 2px;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-    .user-role {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-    .user-points {
-      margin-top: 16px;
-      background: rgba(0,255,136,0.05);
-      border: 1px solid rgba(0,255,136,0.1);
-      padding: 12px;
-    }
-    .user-points-num {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 32px;
-      letter-spacing: 2px;
-      color: var(--accent);
-    }
-    .user-points-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-    .dash-nav { display: flex; flex-direction: column; gap: 4px; }
-    .dash-nav-btn {
-      background: none;
-      border: 1px solid transparent;
-      color: var(--muted);
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 1px;
-      text-align: left;
-      padding: 10px 16px;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .dash-nav-btn:hover { border-color: var(--border); color: var(--text); }
-    .dash-nav-btn.active { border-color: rgba(0,255,136,0.3); color: var(--accent); background: rgba(0,255,136,0.05); }
-    .dash-nav-btn.active::before { content: '▶️'; font-size: 8px; }
-    
-    .dash-panel { display: none; }
-    .dash-panel.active { display: block; }
-    .dash-panel-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 32px;
-      letter-spacing: 3px;
-      color: var(--text);
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .dash-panel-title::before {
-      content: '//';
-      font-size: 20px;
-      color: var(--accent);
-      opacity: 0.5;
-    }
-
-    /* Bookmarks / reg cards in dashboard */
-    .dash-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media(max-width: 600px) { .dash-cards { grid-template-columns: 1fr; } }
-    .dash-ev-card {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      padding: 16px;
-      position: relative;
-    }
-    .dash-ev-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--text); margin-bottom: 6px; }
-    .dash-ev-meta { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 12px; }
-    .dash-ev-ticket {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      color: var(--accent);
-      letter-spacing: 1px;
-      border: 1px solid rgba(0,255,136,0.2);
-      padding: 4px 8px;
-      display: inline-block;
-      margin-bottom: 10px;
-    }
-    .btn-danger {
-      background: none;
-      border: 1px solid rgba(255,71,87,0.3);
-      color: var(--danger);
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      cursor: pointer;
-      padding: 6px 12px;
-      text-transform: uppercase;
-      width: 100%;
-      transition: all 0.2s;
-    }
-.btn-danger:hover { background: rgba(255,71,87,0.1); }
-
-    /* Admin table */
-    .admin-table { width: 100%; border-collapse: collapse; }
-    .admin-table th {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding: 10px 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg3);
-    }
-    .admin-table td { padding: 12px 16px; border-bottom: 1px solid rgba(30,42,58,0.5); font-size: 13px; color: var(--text); }
-    .admin-table tr:hover td { background: rgba(0,255,136,0.02); }
-    .status-chip {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 3px 8px;
-      border: 1px solid;
-    }
-    .status-confirmed { color: var(--success); border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.05); }
-
-    /* Auth Form */
-    .auth-form { display: flex; flex-direction: column; gap: 16px; }
-    .form-group label {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      display: block;
-      margin-bottom: 6px;
-    }
-    .form-input {
-      width: 100%;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      padding: 10px 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,255,136,0.1); }
-    .form-input::placeholder { color: var(--muted); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .form-select {
-      width: 100%;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      padding: 10px 14px;
-      outline: none;
-    }
-    .form-select:focus { border-color: var(--accent); }
-
-    /* Toast */
-    #toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 999;
-      transform: translateY(80px);
-      opacity: 0;
-      transition: all 0.3s;
-    }
-    #toast.show { transform: translateY(0); opacity: 1; }
-    .toast-box {
-      background: var(--bg3);
-      border: 1px solid var(--accent);
-      padding: 12px 20px;
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      color: var(--accent);
-      letter-spacing: 1px;
-      box-shadow: var(--glow);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .toast-box.error { border-color: var(--danger); color: var(--danger); box-shadow: 0 0 20px rgba(255,71,87,0.2); }
-    .toast-dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; }
-
-    /* Leaderboard section */
-    .lb-section {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 24px 60px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border); }
-
-    /* Glow on accent elements */
-    .glow-text { text-shadow: 0 0 20px rgba(0,255,136,0.5); }
-
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      border: 1px dashed var(--border);
-    }
-    .empty-state-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.4; }
-    .empty-state-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 24px;
-      letter-spacing: 3px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .empty-state-desc { font-size: 13px; color: var(--muted); }
-  </style>
+  /* Animated underline on title */
+  .underline-amber { position: relative; display: inline-block; }
+  .underline-amber::after { content: ''; position: absolute; left: 0; bottom: -4px; width: 100%; height: 3px; background: var(--amber); border-radius: 2px; }
+</style>
 </head>
 <body>
 
-<!-- TICKER -->
-<div class="ticker-wrap">
-  <div class="ticker-label">// LIVE</div>
-  <div style="overflow:hidden;flex:1">
-    <div class="ticker-track" id="ticker-content"></div>
-  </div>
-</div>
-
-<!-- NAV -->
-<nav>
-  <a class="nav-logo" onclick="showSection('home')">
-    <div class="logo-icon">CP</div>
-    <div class="logo-text">Campus<span>Pulse</span></div>
-  </a>
-  <div class="nav-links">
-    <button class="nav-btn active" id="nav-home" onclick="showSection('home')">Home</button>
-    <button class="nav-btn" id="nav-events" onclick="showSection('events')">Events</button>
-    <button class="nav-btn" id="nav-leaderboard" onclick="showSection('leaderboard')">Leaderboard</button>
-    <button class="nav-btn" id="nav-dashboard" onclick="showSection('dashboard')" style="display:none">Dashboard</button>
-  </div>
-  <div class="nav-right">
-    <div id="auth-area">
-      <button class="btn-outline" onclick="openModal('modal-login')">Sign In</button>
-      <button class="btn-primary" onclick="openModal('modal-register')" style="margin-left:8px">Register</button>
-    </div>
-    <div id="user-area" style="display:none; align-items:center; gap:12px">
-      <span id="user-greeting" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)"></span>
-      <button class="btn-outline" onclick="logout()">Logout</button>
-    </div>
-  </div>
-</nav>
-
-<!-- ========== HOME ========== -->
-<div id="section-home" class="section active">
-  <div class="hero">
-    <div>
-      <div class="hero-tag">RKSP Group of Institutions — 2024-25</div>
-      <h1>YOUR<br><em>CAMPUS</em><br>PULSE</h1>
-      <p class="hero-desc">Track every seminar, hackathon, cultural festival and workshop. Register instantly, vote for events, and climb the participation leaderboard.</p>
-      <div class="hero-btns">
-        <button class="btn-primary" onclick="showSection('events')">Explore Events →</button>
-        <button class="btn-outline" onclick="openModal('modal-register')">Join Now</button>
+<!-- ===================== LANDING PAGE ===================== -->
+<div id="page-landing" class="page active">
+  <!-- Navbar -->
+  <nav style="border-bottom:1px solid var(--border);backdrop-filter:blur(10px);position:sticky;top:0;z-index:100;background:rgba(13,13,13,.85);">
+    <div style="max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:32px;height:32px;background:var(--amber);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:16px;height:16px;"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;">TalentBridge</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn-outline" style="padding:8px 18px;border-radius:8px;font-size:13px;" onclick="showAuth('login')">Sign In</button>
+        <button class="btn-amber" style="padding:8px 20px;border-radius:8px;font-size:13px;" onclick="showAuth('register')">Get Started</button>
       </div>
     </div>
-    <div>
-      <div class="live-panel">
-        <div class="live-badge"><div class="live-dot"></div> Live Feed</div>
-        <div class="stat-row">
-          <div class="stat-box">
-            <div class="stat-num" id="home-stat-events">0</div>
-            <div class="stat-label">Events Live</div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-mesh" style="padding:100px 24px 80px;text-align:center;">
+    <div style="max-width:780px;margin:0 auto;">
+      <div class="badge badge-amber" style="margin-bottom:20px;font-size:11px;">✦ 2,400+ Active Opportunities</div>
+      <h1 style="font-size:clamp(2.4rem,6vw,4rem);font-weight:800;line-height:1.1;margin:0 0 20px;">
+        Find Your Next <span style="color:var(--amber);">Dream Job</span><br/>Or Perfect Hire
+      </h1>
+      <p style="color:#9CA3AF;font-size:16px;max-width:520px;margin:0 auto 40px;line-height:1.7;">TalentBridge connects ambitious professionals with forward-thinking companies. Your career journey starts here.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn-amber" style="padding:14px 32px;border-radius:10px;font-size:15px;" onclick="showAuth('register','seeker')">🎓 I'm Job Seeking</button>
+        <button class="btn-outline" style="padding:14px 32px;border-radius:10px;font-size:15px;" onclick="showAuth('register','employer')">🏢 I'm Hiring</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ticker -->
+  <div style="background:var(--panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0;overflow:hidden;">
+    <div class="ticker-inner" id="ticker"></div>
+  </div>
+
+  <!-- Stats -->
+  <section style="max-width:900px;margin:0 auto;padding:80px 24px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:24px;">
+      <div class="card" style="padding:28px;text-align:center;">
+        <div class="stat-num">12,400+</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px;">Active Jobs</div>
+      </div>
+      <div class="card" style="padding:28px;text-align:center;">
+        <div class="stat-num">3,800+</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px;">Companies</div>
+      </div>
+      <div class="card" style="padding:28px;text-align:center;">
+        <div class="stat-num">98K+</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px;">Job Seekers</div>
+      </div>
+      <div class="card" style="padding:28px;text-align:center;">
+        <div class="stat-num">87%</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px;">Placement Rate</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Jobs Preview -->
+  <section style="max-width:1100px;margin:0 auto;padding:0 24px 80px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+      <h2 style="font-size:1.6rem;font-weight:800;margin:0;">Featured <span class="underline-amber">Listings</span></h2>
+      <button class="btn-outline" style="padding:8px 18px;border-radius:8px;font-size:13px;" onclick="showAuth('login')">View All →</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;" id="landing-jobs"></div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="border-top:1px solid var(--border);padding:32px 24px;text-align:center;color:var(--muted);font-size:13px;">
+    <span style="font-family:'Syne',sans-serif;font-weight:800;color:var(--amber);">TalentBridge</span> — Connecting talent with opportunity &nbsp;·&nbsp; Built with ❤️
+  </footer>
+</div>
+
+<!-- ===================== AUTH PAGE ===================== -->
+<div id="page-auth" class="page">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse 60% 50% at 30% 50%,rgba(245,158,11,.1) 0%,transparent 70%),var(--dark);">
+    <div style="width:100%;max-width:460px;">
+      <!-- Back -->
+      <button class="btn-outline" style="padding:7px 14px;border-radius:7px;font-size:13px;margin-bottom:28px;" onclick="showPage('landing')">← Back</button>
+      <div class="card glow" style="padding:36px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+          <div style="width:28px;height:28px;background:var(--amber);border-radius:7px;display:flex;align-items:center;justify-content:center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:14px;height:14px;"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
           </div>
-          <div class="stat-box" style="border-color:rgba(0,204,255,0.1);background:rgba(0,204,255,0.04)">
-            <div class="stat-num" id="home-stat-regs" style="color:var(--accent2)">0</div>
-            <div class="stat-label">Registrations</div>
+          <span style="font-family:'Syne',sans-serif;font-weight:800;">TalentBridge</span>
+        </div>
+
+        <!-- Toggle -->
+        <div style="display:flex;background:var(--panel);border-radius:9px;padding:4px;margin-bottom:24px;" id="auth-toggle">
+          <button id="toggle-login" class="tab active" style="flex:1;text-align:center;" onclick="switchAuth('login')">Sign In</button>
+          <button id="toggle-register" class="tab" style="flex:1;text-align:center;" onclick="switchAuth('register')">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="form-login">
+          <h2 style="font-size:1.3rem;font-weight:800;margin:0 0 6px;">Welcome back</h2>
+          <p style="color:var(--muted);font-size:13px;margin:0 0 24px;">Sign in to your account</p>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div><label>Email</label><input class="inp" type="email" id="login-email" placeholder="you@example.com"/></div>
+            <div><label>Password</label><input class="inp" type="password" id="login-pass" placeholder="••••••••"/></div>
           </div>
-          <div class="stat-box" style="border-color:rgba(198,120,221,0.1);background:rgba(198,120,221,0.04)">
-            <div class="stat-num" style="color:var(--accent4)" id="home-stat-students">0</div>
-            <div class="stat-label">Students</div>
+          <div style="margin-top:10px;margin-bottom:20px;display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="remember"/><label style="margin:0;font-size:12px;cursor:pointer;" for="remember">Remember me</label>
           </div>
-          <div class="stat-box" style="border-color:rgba(255,107,53,0.1);background:rgba(255,107,53,0.04)">
-            <div class="stat-num" style="color:var(--accent3)">4</div>
-            <div class="stat-label">Departments</div>
+          <button class="btn-amber" style="width:100%;padding:12px;border-radius:9px;font-size:14px;" onclick="doLogin()">Sign In →</button>
+          <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:16px;">Demo: seeker@demo.com / employer@demo.com / admin@demo.com (any password)</p>
+        </div>
+
+        <!-- Register Form -->
+        <div id="form-register" style="display:none;">
+          <h2 style="font-size:1.3rem;font-weight:800;margin:0 0 6px;">Create account</h2>
+          <p style="color:var(--muted);font-size:13px;margin:0 0 24px;">Join thousands of professionals</p>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div><label>Full Name</label><input class="inp" type="text" id="reg-name" placeholder="Alex Johnson"/></div>
+            <div><label>Email</label><input class="inp" type="email" id="reg-email" placeholder="you@example.com"/></div>
+            <div><label>Password</label><input class="inp" type="password" id="reg-pass" placeholder="Min. 8 characters"/></div>
+            <div>
+              <label>I am a</label>
+              <select class="inp" id="reg-role">
+                <option value="seeker">Job Seeker / Student</option>
+                <option value="employer">Employer / Company</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="next-event-card" id="home-next-event"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== EVENTS ========== -->
-<div id="section-events" class="section">
-  <div class="page-header">
-    <div class="page-title-row">
-      <div>
-        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">// Event Board</div>
-        <div class="page-title">ALL <span>EVENTS</span></div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <div class="view-toggle">
-          <button class="vt-btn active" id="vt-grid" onclick="setView('grid')" title="Grid">⊞</button>
-          <button class="vt-btn" id="vt-list" onclick="setView('list')" title="List">≡</button>
-        </div>
-        <button id="btn-create-event" class="btn-primary" onclick="openModal('modal-create-event')" style="display:none">+ Create Event</button>
-      </div>
-    </div>
-    <div class="filter-bar">
-      <div class="search-box">
-        <span class="search-icon">⌕</span>
-        <input type="text" id="search-input" placeholder="Search events, venues..." oninput="filterEvents()">
-      </div>
-      <button class="filter-chip active" data-cat="" onclick="setFilter(this,'')">All</button>
-      <button class="filter-chip" data-cat="academic" onclick="setFilter(this,'academic')">Academic</button>
-      <button class="filter-chip" data-cat="cultural" onclick="setFilter(this,'cultural')">Cultural</button>
-      <button class="filter-chip" data-cat="sports" onclick="setFilter(this,'sports')">Sports</button>
-      <button class="filter-chip" data-cat="workshop" onclick="setFilter(this,'workshop')">Workshop</button>
-    </div>
-  </div>
-  <div class="events-container">
-    <div id="events-grid" class="events-grid"></div>
-  </div>
-</div>
-
-<!-- ========== LEADERBOARD ========== -->
-<div id="section-leaderboard" class="section">
-  <div class="lb-section">
-    <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">// Participation Rankings</div>
-    <div class="page-title" style="margin-bottom:32px">LEADER<span style="color:var(--accent)">BOARD</span></div>
-    <div style="background:var(--card-bg);border:1px solid var(--border);overflow:hidden">
-      <table class="lb-table" id="lb-table">
-        <thead>
-          <tr>
-            <th style="width:60px">#</th>
-            <th>Student</th>
-            <th>Dept</th>
-            <th>Events</th>
-            <th>Points</th>
-            <th style="min-width:120px">Score</th>
-          </tr>
-        </thead>
-        <tbody id="lb-body"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ========== DASHBOARD ========== -->
-<div id="section-dashboard" class="section">
-  <div class="dash-grid">
-    <div class="dash-sidebar">
-      <div class="user-card" id="dash-user-card"></div>
-      <div class="dash-nav">
-        <button class="dash-nav-btn active" onclick="showDashPanel('my-regs')">My Tickets</button>
-        <button class="dash-nav-btn" onclick="showDashPanel('bookmarks')">Bookmarks</button>
-        <button class="dash-nav-btn" onclick="showDashPanel('voted')">My Votes</button>
-        <button class="dash-nav-btn" id="dash-manage-btn" onclick="showDashPanel('manage')" style="display:none">Manage Events</button>
-        <button class="dash-nav-btn" id="dash-reports-btn" onclick="showDashPanel('reports')" style="display:none">Reports</button>
-      </div>
-    </div>
-    <div>
-      <div class="dash-panel active" id="panel-my-regs">
-        <div class="dash-panel-title">My Tickets</div>
-        <div id="regs-content"></div>
-      </div>
-      <div class="dash-panel" id="panel-bookmarks">
-        <div class="dash-panel-title">Bookmarks</div>
-        <div id="bookmarks-content"></div>
-      </div>
-      <div class="dash-panel" id="panel-voted">
-        <div class="dash-panel-title">Events I Voted</div>
-        <div id="voted-content"></div>
-      </div>
-      <div class="dash-panel" id="panel-manage">
-        <div class="dash-panel-title" style="justify-content:space-between">
-          <span>// Manage Events</span>
-          <button class="btn-primary" onclick="openModal('modal-create-event')" style="font-size:10px">+ Create</button>
-        </div>
-        <div id="manage-content"></div>
-      </div>
-      <div class="dash-panel" id="panel-reports">
-        <div class="dash-panel-title">Reports</div>
-        <div style="overflow-x:auto">
-          <table class="admin-table" id="reports-table">
-            <thead><tr><th>Student</th><th>Event</th><th>Date</th><th>Points</th><th>Status</th></tr></thead>
-            <tbody id="reports-body"></tbody>
-          </table>
+          <button class="btn-amber" style="width:100%;padding:12px;border-radius:9px;font-size:14px;margin-top:20px;" onclick="doRegister()">Create Account →</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ======= MODALS ======= -->
+<!-- ===================== SEEKER DASHBOARD ===================== -->
+<div id="page-seeker" class="page">
+  <div style="display:flex;min-height:100vh;">
+    <!-- Sidebar -->
+    <aside id="seeker-sidebar" style="width:220px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 6px 20px;">
+        <div style="width:26px;height:26px;background:var(--amber);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:13px;height:13px;"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;">TalentBridge</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
+        <div class="nav-item active" onclick="seekerTab('home')" id="snav-home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dashboard
+        </div>
+        <div class="nav-item" onclick="seekerTab('jobs')" id="snav-jobs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Browse Jobs
+        </div>
+        <div class="nav-item" onclick="seekerTab('applications')" id="snav-applications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>My Applications
+        </div>
+        <div class="nav-item" onclick="seekerTab('profile')" id="snav-profile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile
+        </div>
+        <div class="nav-item" onclick="seekerTab('notifications')" id="snav-notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Notifications <span class="notif-dot" id="notif-dot-s" style="margin-left:auto;"></span>
+        </div>
+      </div>
+      <div style="padding-top:12px;border-top:1px solid var(--border);">
+        <div class="nav-item" onclick="doLogout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+        </div>
+      </div>
+    </aside>
 
-<!-- LOGIN -->
-<div class="modal-overlay" id="modal-login" onclick="closeModalOuter(event,'modal-login')">
-  <div class="modal-box" style="max-width:440px">
-    <div class="modal-header">
-      <div class="modal-title">Sign In</div>
-      <button class="modal-close" onclick="closeModal('modal-login')">✕</button>
-    </div>
-    <div class="modal-body">
-      <form class="auth-form" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label>Email Address</label>
-          <input class="form-input" type="email" name="email" placeholder="you@campus.edu" required>
+    <!-- Main -->
+    <main style="flex:1;overflow-x:hidden;">
+      <!-- Header -->
+      <div style="padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(13,13,13,.9);backdrop-filter:blur(10px);z-index:10;">
+        <div>
+          <h2 id="seeker-page-title" style="margin:0;font-size:1.1rem;font-weight:800;">Dashboard</h2>
+          <p id="seeker-page-sub" style="margin:0;font-size:12px;color:var(--muted);">Welcome back!</p>
         </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input class="form-input" type="password" name="password" placeholder="••••••••" required>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="avatar" style="background:rgba(245,158,11,.15);color:var(--amber);" id="seeker-avatar-nav">JS</div>
         </div>
-        <button type="submit" class="btn-primary" style="width:100%;padding:12px;font-size:12px;letter-spacing:2px">ACCESS SYSTEM →</button>
-        <p style="text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)">New here? <a href="#" onclick="closeModal('modal-login');openModal('modal-register')" style="color:var(--accent);text-decoration:none">Register</a></p>
-      </form>
-    </div>
-  </div>
-</div>
+      </div>
 
-<!-- REGISTER -->
-<div class="modal-overlay" id="modal-register" onclick="closeModalOuter(event,'modal-register')">
-  <div class="modal-box" style="max-width:480px">
-    <div class="modal-header">
-      <div class="modal-title">Create Account</div>
-      <button class="modal-close" onclick="closeModal('modal-register')">✕</button>
-    </div>
-    <div class="modal-body">
-      <form class="auth-form" onsubmit="handleRegister(event)">
-        <div class="form-group">
-          <label>Full Name</label>
-          <input class="form-input" type="text" name="name" required>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input class="form-input" type="email" name="email" required>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Role</label>
-            <select class="form-select" name="role">
-              <option value="student">Student</option>
-              <option value="organizer">Organizer</option>
-            </select>
+      <div style="padding:28px;">
+        <!-- HOME TAB -->
+        <div id="stab-home">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px;">
+            <div class="card" style="padding:22px;">
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Applications</div>
+              <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--amber);" id="s-stat-apps">0</div>
+            </div>
+            <div class="card" style="padding:22px;">
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Shortlisted</div>
+              <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#4ADE80;" id="s-stat-short">0</div>
+            </div>
+            <div class="card" style="padding:22px;">
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Pending</div>
+              <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#60A5FA;" id="s-stat-pend">0</div>
+            </div>
+            <div class="card" style="padding:22px;">
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Profile Views</div>
+              <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#E879F9;">24</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Department</label>
-            <select class="form-select" name="dept">
-              <option value="CSE">CSE</option>
-              <option value="ECE">ECE</option>
-              <option value="MECH">Mechanical</option>
-              <option value="CIVIL">Civil</option>
-            </select>
+
+          <!-- Profile Completion -->
+          <div class="card" style="padding:22px;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-weight:700;font-size:14px;">Profile Completion</span>
+              <span style="font-size:13px;color:var(--amber);font-weight:700;" id="profile-pct">65%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="profile-bar" style="width:65%;"></div></div>
+            <p style="font-size:12px;color:var(--muted);margin-top:10px;">Complete your profile to get better job matches.</p>
+          </div>
+
+          <!-- Recent Applications -->
+          <div class="card" style="padding:22px;">
+            <h3 style="font-size:15px;font-weight:800;margin:0 0 16px;">Recent Applications</h3>
+            <div id="seeker-recent-apps"></div>
           </div>
         </div>
-        <div class="form-group">
-          <label>Password (min 6 chars)</label>
-          <input class="form-input" type="password" name="password" minlength="6" required>
+
+        <!-- JOBS TAB -->
+        <div id="stab-jobs" style="display:none;">
+          <!-- Filters -->
+          <div class="card" style="padding:18px;margin-bottom:20px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
+              <div><label>Search</label><input class="inp" type="text" id="job-search" placeholder="Job title, skills..." oninput="renderJobs()"/></div>
+              <div><label>Category</label>
+                <select class="inp" id="job-cat" onchange="renderJobs()">
+                  <option value="">All Categories</option>
+                  <option>Technology</option><option>Design</option><option>Marketing</option><option>Finance</option><option>Healthcare</option><option>Education</option>
+                </select>
+              </div>
+              <div><label>Location</label>
+                <select class="inp" id="job-loc" onchange="renderJobs()">
+                  <option value="">All Locations</option>
+                  <option>Remote</option><option>New York</option><option>San Francisco</option><option>London</option><option>Berlin</option>
+                </select>
+              </div>
+              <button class="btn-amber" style="padding:10px 18px;border-radius:8px;font-size:13px;white-space:nowrap;" onclick="renderJobs()">Search</button>
+            </div>
+          </div>
+          <div id="jobs-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;"></div>
         </div>
-        <button type="submit" class="btn-primary" style="width:100%;padding:12px;font-size:12px;letter-spacing:2px">CREATE PROFILE →</button>
-        <p style="text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)">Already registered? <a href="#" onclick="closeModal('modal-register');openModal('modal-login')" style="color:var(--accent);text-decoration:none">Sign In</a></p>
-      </form>
-    </div>
+
+        <!-- APPLICATIONS TAB -->
+        <div id="stab-applications" style="display:none;">
+          <div class="card" style="overflow:hidden;">
+            <div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;" id="app-filter-tabs">
+              <span class="tab active" onclick="filterApps('all',this)">All</span>
+              <span class="tab" onclick="filterApps('Pending',this)">Pending</span>
+              <span class="tab" onclick="filterApps('Shortlisted',this)">Shortlisted</span>
+              <span class="tab" onclick="filterApps('Rejected',this)">Rejected</span>
+            </div>
+            <div id="apps-table-container"></div>
+          </div>
+        </div>
+
+        <!-- PROFILE TAB -->
+        <div id="stab-profile" style="display:none;">
+          <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px;">
+            <div>
+              <div class="card" style="padding:24px;text-align:center;margin-bottom:16px;">
+                <div class="avatar" style="width:72px;height:72px;border-radius:16px;background:rgba(245,158,11,.15);color:var(--amber);font-size:24px;margin:0 auto 12px;" id="s-avatar-big">JS</div>
+                <h3 style="font-size:16px;font-weight:800;margin:0 0 4px;" id="s-profile-name">Job Seeker</h3>
+                <p style="font-size:12px;color:var(--muted);margin:0 0 14px;" id="s-profile-email">seeker@demo.com</p>
+                <div class="badge badge-blue" style="margin-bottom:16px;">Job Seeker</div>
+                <div style="display:flex;flex-direction:column;gap:8px;text-align:left;font-size:13px;color:var(--muted);">
+                  <span>📍 New York, USA</span>
+                  <span>🎓 B.Tech Computer Science</span>
+                  <span>📅 Joined Apr 2025</span>
+                </div>
+              </div>
+              <div class="card" style="padding:20px;">
+                <h4 style="font-size:13px;font-weight:800;margin:0 0 14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);">Skills</h4>
+                <div id="skills-display">
+                  <span class="chip">React</span><span class="chip">Node.js</span><span class="chip">Python</span><span class="chip">SQL</span><span class="chip">Java</span><span class="chip">Spring Boot</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div class="card" style="padding:24px;">
+                <h3 style="font-size:15px;font-weight:800;margin:0 0 18px;">Edit Profile</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                  <div><label>Full Name</label><input class="inp" type="text" id="p-name" value="Alex Johnson"/></div>
+                  <div><label>Title</label><input class="inp" type="text" id="p-title" value="Full Stack Developer"/></div>
+                  <div><label>Email</label><input class="inp" type="email" id="p-email" value="seeker@demo.com"/></div>
+                  <div><label>Phone</label><input class="inp" type="tel" id="p-phone" value="+1 555 0100"/></div>
+                  <div><label>Location</label><input class="inp" type="text" id="p-loc" value="New York, USA"/></div>
+                  <div><label>Experience</label>
+                    <select class="inp" id="p-exp">
+                      <option>Fresher</option><option selected>1-2 years</option><option>3-5 years</option><option>5+ years</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="margin-top:14px;"><label>Bio</label><textarea class="inp" rows="3" style="resize:vertical;">Passionate full-stack developer with experience in React and Spring Boot. Looking for challenging opportunities.</textarea></div>
+                <button class="btn-amber" style="margin-top:16px;padding:10px 24px;border-radius:8px;font-size:13px;" onclick="saveProfile()">Save Changes</button>
+              </div>
+              <div class="card" style="padding:24px;">
+                <h3 style="font-size:15px;font-weight:800;margin:0 0 14px;">Resume Upload</h3>
+                <div style="border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:border-color .2s;" onmouseenter="this.style.borderColor='var(--amber)'" onmouseleave="this.style.borderColor='var(--border)'" onclick="document.getElementById('resume-file').click()">
+                  <div style="font-size:28px;margin-bottom:8px;">📄</div>
+                  <p style="margin:0;font-size:13px;font-weight:600;">Drop your resume here or click to browse</p>
+                  <p style="margin:6px 0 0;font-size:11px;color:var(--muted);">PDF, DOC, DOCX up to 5MB</p>
+                  <input type="file" id="resume-file" style="display:none;" accept=".pdf,.doc,.docx" onchange="handleResumeUpload(this)"/>
+                </div>
+                <div id="resume-status" style="margin-top:10px;font-size:13px;color:var(--muted);">No resume uploaded yet.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTIFICATIONS TAB -->
+        <div id="stab-notifications" style="display:none;">
+          <div class="card" style="overflow:hidden;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+              <h3 style="font-size:15px;font-weight:800;margin:0;">Notifications</h3>
+              <button class="btn-outline" style="padding:6px 14px;border-radius:7px;font-size:12px;" onclick="clearNotifications()">Mark all read</button>
+            </div>
+            <div id="notif-list" style="padding:8px 0;"></div>
+          </div>
+        </div>
+      </div><!-- /padding -->
+    </main>
   </div>
 </div>
 
-<!-- CREATE EVENT -->
-<div class="modal-overlay" id="modal-create-event" onclick="closeModalOuter(event,'modal-create-event')">
+<!-- ===================== EMPLOYER DASHBOARD ===================== -->
+<div id="page-employer" class="page">
+  <div style="display:flex;min-height:100vh;">
+    <!-- Sidebar -->
+    <aside style="width:220px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 6px 20px;">
+        <div style="width:26px;height:26px;background:var(--amber);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:13px;height:13px;"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;">TalentBridge</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
+        <div class="nav-item active" onclick="employerTab('home')" id="enav-home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dashboard
+        </div>
+        <div class="nav-item" onclick="employerTab('post')" id="enav-post">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Post a Job
+        </div>
+        <div class="nav-item" onclick="employerTab('listings')" id="enav-listings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>My Listings
+        </div>
+        <div class="nav-item" onclick="employerTab('applicants')" id="enav-applicants">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Applicants
+        </div>
+      </div>
+      <div style="padding-top:12px;border-top:1px solid var(--border);">
+        <div class="nav-item" onclick="doLogout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+        </div>
+      </div>
+    </aside>
+    <main style="flex:1;overflow-x:hidden;">
+      <div style="padding:20px 28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(13,13,13,.9);backdrop-filter:blur(10px);z-index:10;">
+        <h2 id="emp-page-title" style="margin:0;font-size:1.1rem;font-weight:800;">Dashboard</h2>
+        <p style="margin:0;font-size:12px;color:var(--muted);">Employer Portal</p>
+      </div>
+      <div style="padding:28px;">
+
+        <!-- EMPLOYER HOME -->
+        <div id="etab-home">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px;">
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Active Jobs</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--amber);" id="e-stat-jobs">0</div></div>
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Total Applicants</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#4ADE80;" id="e-stat-apps">0</div></div>
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Shortlisted</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#60A5FA;" id="e-stat-short">0</div></div>
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Hired</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#E879F9;">3</div></div>
+          </div>
+          <div class="card" style="padding:22px;">
+            <h3 style="font-size:15px;font-weight:800;margin:0 0 16px;">My Job Listings</h3>
+            <div id="emp-listings-preview"></div>
+          </div>
+        </div>
+
+        <!-- POST JOB -->
+        <div id="etab-post" style="display:none;">
+          <div class="card" style="padding:28px;max-width:700px;">
+            <h3 style="font-size:16px;font-weight:800;margin:0 0 20px;">Post a New Job</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div style="grid-column:1/-1;"><label>Job Title *</label><input class="inp" type="text" id="j-title" placeholder="e.g. Senior React Developer"/></div>
+              <div><label>Category</label>
+                <select class="inp" id="j-cat">
+                  <option>Technology</option><option>Design</option><option>Marketing</option><option>Finance</option><option>Healthcare</option><option>Education</option>
+                </select>
+              </div>
+              <div><label>Location</label><input class="inp" type="text" id="j-loc" placeholder="e.g. Remote, New York"/></div>
+              <div><label>Salary Range</label><input class="inp" type="text" id="j-salary" placeholder="e.g. $80k – $120k"/></div>
+              <div><label>Experience Level</label>
+                <select class="inp" id="j-exp">
+                  <option>Fresher</option><option>1-2 years</option><option>3-5 years</option><option>5+ years</option>
+                </select>
+              </div>
+              <div><label>Job Type</label>
+                <select class="inp" id="j-type">
+                  <option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option>
+                </select>
+              </div>
+              <div><label>Deadline</label><input class="inp" type="date" id="j-deadline"/></div>
+              <div style="grid-column:1/-1;"><label>Required Skills (comma separated)</label><input class="inp" type="text" id="j-skills" placeholder="React, Node.js, PostgreSQL"/></div>
+              <div style="grid-column:1/-1;"><label>Job Description *</label><textarea class="inp" rows="5" id="j-desc" style="resize:vertical;" placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea></div>
+            </div>
+            <button class="btn-amber" style="margin-top:20px;padding:12px 28px;border-radius:9px;font-size:14px;" onclick="postJob()">Publish Job →</button>
+          </div>
+        </div>
+
+        <!-- MY LISTINGS -->
+        <div id="etab-listings" style="display:none;">
+          <div id="emp-full-listings"></div>
+        </div>
+
+        <!-- APPLICANTS -->
+        <div id="etab-applicants" style="display:none;">
+          <div class="card" style="padding:18px;margin-bottom:16px;">
+            <label>Filter by Job</label>
+            <select class="inp" id="app-job-filter" onchange="renderEmployerApplicants()" style="max-width:360px;"></select>
+          </div>
+          <div class="card" style="overflow:hidden;">
+            <div id="applicants-table"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ===================== ADMIN DASHBOARD ===================== -->
+<div id="page-admin" class="page">
+  <div style="display:flex;min-height:100vh;">
+    <aside style="width:220px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 6px 20px;">
+        <div style="width:26px;height:26px;background:var(--amber);border-radius:6px;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" style="width:13px;height:13px;"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;">Admin Panel</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
+        <div class="nav-item active" onclick="adminTab('overview')" id="anav-overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Overview
+        </div>
+        <div class="nav-item" onclick="adminTab('users')" id="anav-users">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Users
+        </div>
+        <div class="nav-item" onclick="adminTab('jobs')" id="anav-jobs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>All Jobs
+        </div>
+      </div>
+      <div style="padding-top:12px;border-top:1px solid var(--border);">
+        <div class="nav-item" onclick="doLogout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+        </div>
+      </div>
+    </aside>
+    <main style="flex:1;overflow-x:hidden;">
+      <div style="padding:20px 28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(13,13,13,.9);backdrop-filter:blur(10px);z-index:10;">
+        <h2 style="margin:0;font-size:1.1rem;font-weight:800;">Admin Dashboard</h2>
+        <p style="margin:0;font-size:12px;color:var(--muted);">System Overview</p>
+      </div>
+      <div style="padding:28px;">
+        <!-- OVERVIEW -->
+        <div id="atab-overview">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px;">
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Total Users</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--amber);" id="a-stat-users">0</div></div>
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Active Jobs</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#4ADE80;" id="a-stat-jobs">0</div></div>
+            <div class="card" style="padding:22px;"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Applications</div><div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#60A5FA;" id="a-stat-apps">0</div></div>
+          </div>
+          <div class="card" style="padding:22px;">
+            <h3 style="font-size:15px;font-weight:800;margin:0 0 16px;">Recent Activity</h3>
+            <div id="admin-activity"></div>
+          </div>
+        </div>
+        <!-- USERS -->
+        <div id="atab-users" style="display:none;">
+          <div class="card" style="overflow:hidden;"><div id="admin-users-table"></div></div>
+        </div>
+        <!-- JOBS -->
+        <div id="atab-jobs" style="display:none;">
+          <div class="card" style="overflow:hidden;"><div id="admin-jobs-table"></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Job Detail Modal -->
+<div id="job-modal" style="display:none;" class="modal-overlay" onclick="if(event.target===this)closeJobModal()">
   <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title">New Event</div>
-      <button class="modal-close" onclick="closeModal('modal-create-event')">✕</button>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="avatar" id="modal-logo" style="width:52px;height:52px;border-radius:12px;background:rgba(245,158,11,.15);color:var(--amber);font-size:18px;"></div>
+        <div>
+          <h2 id="modal-title" style="margin:0;font-size:1.2rem;font-weight:800;"></h2>
+          <p id="modal-company" style="margin:0;font-size:13px;color:var(--muted);"></p>
+        </div>
+      </div>
+      <button onclick="closeJobModal()" style="background:rgba(255,255,255,.07);border:none;color:var(--text);cursor:pointer;padding:6px 10px;border-radius:7px;font-size:16px;">✕</button>
     </div>
-    <div class="modal-body">
-      <form class="auth-form" onsubmit="handleCreateEvent(event)">
-        <div class="form-group">
-          <label>Event Name</label>
-          <input class="form-input" type="text" name="name" required>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Date</label>
-            <input class="form-input" type="date" name="date" required>
-          </div>
-          <div class="form-group">
-            <label>Time</label>
-            <input class="form-input" type="time" name="time" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Venue</label>
-          <input class="form-input" type="text" name="venue" required>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Category</label>
-            <select class="form-select" name="category">
-              <option value="academic">Academic</option>
-              <option value="cultural">Cultural</option>
-              <option value="sports">Sports</option>
-              <option value="workshop">Workshop</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Capacity</label>
-            <input class="form-input" type="number" name="capacity" min="1" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Image URL (optional)</label>
-          <input class="form-input" type="url" name="imageUrl" placeholder="https://...">
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea class="form-input" name="description" rows="3" required style="resize:vertical"></textarea>
-        </div>
-        <button type="submit" class="btn-primary" style="width:100%;padding:12px;font-size:12px;letter-spacing:2px">PUBLISH EVENT →</button>
-      </form>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;" id="modal-badges"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+      <div class="card" style="padding:14px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">SALARY</div><div style="font-weight:700;font-size:14px;" id="modal-salary"></div></div>
+      <div class="card" style="padding:14px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">DEADLINE</div><div style="font-weight:700;font-size:14px;" id="modal-deadline"></div></div>
     </div>
+    <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;">Description</h4>
+    <p id="modal-desc" style="font-size:13px;color:#D1D5DB;line-height:1.7;margin:0 0 18px;"></p>
+    <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;">Required Skills</h4>
+    <div id="modal-skills" style="margin-bottom:24px;"></div>
+    <button class="btn-amber" id="modal-apply-btn" style="width:100%;padding:13px;border-radius:9px;font-size:14px;" onclick="applyJob()">Apply Now →</button>
   </div>
 </div>
 
-<!-- EVENT DETAIL -->
-<div class="modal-overlay" id="modal-detail" onclick="closeModalOuter(event,'modal-detail')">
-  <div class="modal-box">
-    <div style="position:relative">
-      <button class="modal-close" onclick="closeModal('modal-detail')" style="position:absolute;top:12px;right:12px;z-index:10;background:rgba(0,0,0,0.6)">✕</button>
-      <div id="detail-content"></div>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div id="toast">
-  <div class="toast-box" id="toast-box">
-    <div class="toast-dot"></div>
-    <span id="toast-msg"></span>
-  </div>
-</div>
-
+<!-- Toast Container -->
+<div id="toast"></div>
 <script>
-// ======================== DATA ========================
-const DEFAULT_EVENTS = [
-  { id:1, name:"AI & Machine Learning Symposium", date:"2024-12-15", time:"09:00", venue:"Main Auditorium", category:"academic", desc:"Explore cutting-edge AI research. Talks by IIT professors and industry experts on LLMs, computer vision, and ethical AI.", capacity:300, registered:210, imageUrl:"https://picsum.photos/seed/ai2024/800/400", organizer:"Dept of CSE", organizerId:0, votes:87, comments:[{user:"Ravi K",text:"This is going to be amazing!"},{user:"Priya S",text:"Registered! Can't wait."}] },
-  { id:2, name:"Sanskriti Cultural Fest 2024", date:"2024-12-20", time:"17:00", venue:"Open Stage, Block B", category:"cultural", desc:"Three days of music, dance, drama, and art. A celebration of diverse cultures from all departments.", capacity:500, registered:420, imageUrl:"https://picsum.photos/seed/culture24/800/400", organizer:"Cultural Committee", organizerId:0, votes:124, comments:[{user:"Neha M",text:"Sanskriti is always the best event of the year!"}] },
-  { id:3, name:"Inter-Dept Coding Hackathon", date:"2024-12-22", time:"08:00", venue:"Computer Labs, Block C", category:"workshop", desc:"36-hour hackathon. Build solutions for real-world problems. Cash prizes and internship offers for winners.", capacity:120, registered:118, imageUrl:"https://picsum.photos/seed/hack24/800/400", organizer:"DevSoc Club", organizerId:0, votes:201, comments:[{user:"Akhil T",text:"Hoping to get top 3 this year!"}] },
-  { id:4, name:"Zonal Basketball Championship", date:"2024-12-18", time:"14:00", venue:"Sports Complex", category:"sports", desc:"Finals of the inter-university basketball league. Support the home team as they battle for glory.", capacity:800, registered:640, imageUrl:"https://picsum.photos/seed/bball24/800/400", organizer:"Sports Board", organizerId:0, votes:56, comments:[] },
-  { id:5, name:"Research Paper Presentation Day", date:"2024-12-25", time:"10:00", venue:"Seminar Hall 1", category:"academic", desc:"Present your research. Get feedback from faculty judges. Best papers get published in the college journal.", capacity:60, registered:48, imageUrl:"https://picsum.photos/seed/research24/800/400", organizer:"Research Cell", organizerId:0, votes:33, comments:[{user:"Dr. Sharma",text:"Looking forward to seeing everyone's work."}] },
-  { id:6, name:"Photography & Reels Workshop", date:"2024-12-28", time:"15:00", venue:"Media Room, Block A", category:"workshop", desc:"Hands-on workshop on mobile photography, lighting techniques, and creating viral short-form video content.", capacity:40, registered:22, imageUrl:"https://picsum.photos/seed/photo24/800/400", organizer:"Media Club", organizerId:0, votes:44, comments:[] }
+// ========================= DATA STORE =========================
+let state = {
+  currentUser: null,
+  users: [
+    { id:1, name:'Alex Johnson', email:'seeker@demo.com', role:'seeker', password:'demo' },
+    { id:2, name:'TechCorp Inc.', email:'employer@demo.com', role:'employer', password:'demo' },
+    { id:3, name:'Admin User', email:'admin@demo.com', role:'admin', password:'demo' },
+  ],
+  jobs: [
+    { id:1, title:'Senior React Developer', company:'TechCorp Inc.', employerId:2, category:'Technology', location:'Remote', salary:'$90k–$130k', experience:'3-5 years', type:'Full-time', skills:['React','TypeScript','Node.js','GraphQL'], description:'We are looking for a senior React developer to join our product team. You will build high-quality web apps, mentor junior devs, and collaborate with designers.', deadline:'2025-06-30', posted:'2025-04-01', active:true },
+    { id:2, title:'UI/UX Designer', company:'DesignLab', employerId:2, category:'Design', location:'New York', salary:'$70k–$95k', experience:'1-2 years', type:'Full-time', skills:['Figma','Prototyping','User Research','CSS'], description:'DesignLab is seeking a creative UI/UX designer to craft beautiful and intuitive user experiences for our client portfolio.', deadline:'2025-05-31', posted:'2025-03-20', active:true },
+    { id:3, title:'Data Scientist', company:'Analytics Co.', employerId:2, category:'Technology', location:'San Francisco', salary:'$100k–$140k', experience:'3-5 years', type:'Full-time', skills:['Python','Machine Learning','TensorFlow','SQL'], description:'Join our data science team to work on cutting-edge predictive models. You will have access to massive datasets and state-of-the-art infrastructure.', deadline:'2025-07-15', posted:'2025-04-05', active:true },
+    { id:4, title:'Marketing Manager', company:'GrowthHub', employerId:2, category:'Marketing', location:'London', salary:'£55k–£70k', experience:'3-5 years', type:'Full-time', skills:['SEO','Content Strategy','Google Ads','Analytics'], description:'GrowthHub is hiring a Marketing Manager to lead our digital marketing strategy and grow our user base across multiple channels.', deadline:'2025-06-01', posted:'2025-03-25', active:true },
+    { id:5, title:'Java Backend Engineer', company:'FinTech Solutions', employerId:2, category:'Finance', location:'Berlin', salary:'€70k–€95k', experience:'1-2 years', type:'Full-time', skills:['Java','Spring Boot','Microservices','Kafka'], description:'FinTech Solutions needs a Java backend engineer to build robust microservices for our real-time payments platform.', deadline:'2025-08-01', posted:'2025-04-10', active:true },
+    { id:6, title:'Product Manager Intern', company:'StartupXYZ', employerId:2, category:'Technology', location:'Remote', salary:'$2k/month', experience:'Fresher', type:'Internship', skills:['Agile','JIRA','Product Thinking','Communication'], description:'An exciting opportunity for freshers to break into product management. You will work directly with our founding team on core product features.', deadline:'2025-05-15', posted:'2025-04-12', active:true },
+  ],
+  applications: [],
+  notifications: [],
+  selectedJobId: null,
+};
+
+// Seed some applications
+state.applications = [
+  { id:1, jobId:1, userId:1, status:'Pending', date:'2025-04-10' },
+  { id:2, jobId:2, userId:1, status:'Shortlisted', date:'2025-04-08' },
+  { id:3, jobId:3, userId:1, status:'Rejected', date:'2025-04-05' },
+];
+state.notifications = [
+  { id:1, msg:'🎉 You have been shortlisted for UI/UX Designer at DesignLab!', read:false, date:'2025-04-09' },
+  { id:2, msg:'📋 Application submitted for Senior React Developer.', read:true, date:'2025-04-10' },
+  { id:3, msg:'❌ Application for Data Scientist was not selected.', read:false, date:'2025-04-06' },
 ];
 
-let events = JSON.parse(localStorage.getItem('cp_events')) || DEFAULT_EVENTS;
-let users = JSON.parse(localStorage.getItem('cp_users')) || [];
-let regs = JSON.parse(localStorage.getItem('cp_regs')) || [];
-let bookmarks = JSON.parse(localStorage.getItem('cp_bookmarks')) || [];
-let votes = JSON.parse(localStorage.getItem('cp_votes')) || [];
-let currentUser = JSON.parse(localStorage.getItem('cp_user')) || null;
-let currentCatFilter = '';
-let currentView = 'grid';
+// ========================= PAGES =========================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
 
-const save = () => {
-  localStorage.setItem('cp_events', JSON.stringify(events));
-  localStorage.setItem('cp_users', JSON.stringify(users));
-  localStorage.setItem('cp_regs', JSON.stringify(regs));
-  localStorage.setItem('cp_bookmarks', JSON.stringify(bookmarks));
-  localStorage.setItem('cp_votes', JSON.stringify(votes));
-  localStorage.setItem('cp_user', JSON.stringify(currentUser));
-};
+// ========================= AUTH =========================
+function showAuth(mode='login', role='') {
+  showPage('auth');
+  switchAuth(mode);
+  if(role) document.getElementById('reg-role').value = role;
+}
+function switchAuth(mode) {
+  document.getElementById('form-login').style.display = mode==='login'?'block':'none';
+  document.getElementById('form-register').style.display = mode==='register'?'block':'none';
+  document.getElementById('toggle-login').classList.toggle('active', mode==='login');
+  document.getElementById('toggle-register').classList.toggle('active', mode==='register');
+}
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(!email){ toast('Please enter your email'); return; }
+  // Allow any password for demo
+  const user = state.users.find(u => u.email.toLowerCase()===email.toLowerCase());
+  if(!user){ toast('❌ Account not found. Try seeker@demo.com, employer@demo.com, or admin@demo.com'); return; }
+  state.currentUser = user;
+  toast('✅ Welcome back, '+user.name+'!');
+  routeUser();
+}
+function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const role = document.getElementById('reg-role').value;
+  if(!name||!email||!pass){ toast('Please fill all fields'); return; }
+  if(pass.length<6){ toast('Password must be at least 6 characters'); return; }
+  const exists = state.users.find(u=>u.email.toLowerCase()===email.toLowerCase());
+  if(exists){ toast('Email already registered'); return; }
+  const user = { id: state.users.length+1, name, email, role, password:pass };
+  state.users.push(user);
+  state.currentUser = user;
+  toast('🎉 Account created! Welcome, '+name+'!');
+  routeUser();
+}
+function routeUser() {
+  const r = state.currentUser.role;
+  if(r==='seeker'){ initSeekerDash(); showPage('seeker'); }
+  else if(r==='employer'){ initEmployerDash(); showPage('employer'); }
+  else if(r==='admin'){ initAdminDash(); showPage('admin'); }
+}
+function doLogout() {
+  state.currentUser = null;
+  showPage('landing');
+  toast('Signed out successfully');
+}
 
-// ======================== TICKER ========================
-const initTicker = () => {
-  const items = events.map(e => `◆ ${e.name} — ${e.registered}/${e.capacity} seats — ${e.votes} votes`).join('   ');
-  const doubled = items + '   ' + items;
-  document.getElementById('ticker-content').innerHTML = doubled.split('   ').map(i => `<span class="ticker-item">${i}</span>`).join('');
-};
+// ========================= TICKER =========================
+function initTicker() {
+  const companies = ['🚀 TechCorp','💡 DesignLab','📊 Analytics Co.','💰 FinTech','🌱 GrowthHub','🛒 StartupXYZ','🏥 HealthFirst','🎓 EduTech','☁️ CloudBase','🔐 SecureOps'];
+  const html = [...companies,...companies].map(c=>`<span style="padding:0 28px;color:var(--muted);font-size:13px;font-weight:500;">${c}</span>`).join('');
+  document.getElementById('ticker').innerHTML = html;
+}
 
-// ======================== UTILS ========================
-const toast = (msg, ok=true) => {
-  const t = document.getElementById('toast');
-  const b = document.getElementById('toast-box');
-  document.getElementById('toast-msg').textContent = msg;
-  b.className = 'toast-box' + (ok ? '' : ' error');
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-};
-
-const openModal = (id) => {
-  document.getElementById(id).classList.add('open');
-  document.body.style.overflow = 'hidden';
-};
-const closeModal = (id) => {
-  document.getElementById(id).classList.remove('open');
-  document.body.style.overflow = '';
-};
-const closeModalOuter = (e, id) => { if (e.target.id === id) closeModal(id); };
-
-const fmtDate = d => new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
-const catBadge = (c) => `<span class="badge badge-${c}">${c}</span>`;
-const seatsClass = (r,cap) => r>=cap ? 'full' : (r/cap > 0.8 ? 'warn' : '');
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5).toUpperCase();
-
-// ======================== SECTIONS ========================
-const showSection = (id) => {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById('section-' + id).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const navBtn = document.getElementById('nav-' + id);
-  if (navBtn) navBtn.classList.add('active');
-  window.scrollTo({top:0, behavior:'smooth'});
-  if (id === 'home') renderHome();
-  if (id === 'events') renderEvents();
-  if (id === 'leaderboard') renderLeaderboard();
-  if (id === 'dashboard') renderDashboard();
-};
-
-// ======================== HOME ========================
-const renderHome = () => {
-  document.getElementById('home-stat-events').textContent = events.length;
-  document.getElementById('home-stat-regs').textContent = regs.length;
-  document.getElementById('home-stat-students').textContent = users.length;
-
-  const next = [...events].sort((a,b) => new Date(a.date) - new Date(b.date))[0];
-  if (next) {
-    const diff = new Date(next.date) - new Date();
-    const days = Math.max(0, Math.floor(diff / 86400000));
-    const hrs = Math.max(0, Math.floor((diff % 86400000) / 3600000));
-    const mins = Math.max(0, Math.floor((diff % 3600000) / 60000));
-    document.getElementById('home-next-event').innerHTML = `
-      <div class="nec-label">// Next Event</div>
-      <div class="nec-title">${next.name}</div>
-      <div class="nec-time">${fmtDate(next.date)} at ${next.time} · ${next.venue}</div>
-      <div class="countdown">
-        <div class="cd-box"><span class="cd-num">${days}</span><span class="cd-label">Days</span></div>
-        <div class="cd-box"><span class="cd-num">${hrs}</span><span class="cd-label">Hrs</span></div>
-        <div class="cd-box"><span class="cd-num">${mins}</span><span class="cd-label">Min</span></div>
-      </div>
-    `;
-  }
-};
-
-// ======================== EVENTS ========================
-const setFilter = (el, cat) => {
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  currentCatFilter = cat;
-  filterEvents();
-};
-
-const setView = (v) => {
-  currentView = v;
-  document.getElementById('vt-grid').classList.toggle('active', v === 'grid');
-  document.getElementById('vt-list').classList.toggle('active', v === 'list');
-  renderEvents();
-};
-
-const filterEvents = () => {
-  const q = document.getElementById('search-input').value.toLowerCase();
-  const filtered = events.filter(e => {
-    const matchQ = !q || e.name.toLowerCase().includes(q) || e.venue.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q);
-    const matchC = !currentCatFilter || e.category === currentCatFilter;
-    return matchQ && matchC;
-  });
-  renderEvents(filtered);
-};
-
-const renderEvents = (list = events) => {
-  const grid = document.getElementById('events-grid');
-  if (list.length === 0) {
-    grid.className = '';
-    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">◎</div><div class="empty-state-title">No Events Found</div><div class="empty-state-desc">Try a different filter or search term</div></div>`;
-    return;
-  }
-
-  if (currentView === 'grid') {
-    grid.className = 'events-grid';
-    grid.innerHTML = list.map(e => {
-      const pct = Math.min((e.registered / e.capacity) * 100, 100);
-      const sc = seatsClass(e.registered, e.capacity);
-      const isVoted = currentUser && votes.some(v => v.userId === currentUser.id && v.eventId === e.id);
-      const isBm = currentUser && bookmarks.some(b => b.userId === currentUser.id && b.eventId === e.id);
-      const isHot = e.votes > 100;
-      return `
-        <div class="ev-card" onclick="viewEvent(${e.id})">
-          <div class="ev-card-top">
-            <img class="ev-card-img" src="${e.imageUrl}" alt="${e.name}">
-            <div class="ev-card-badges">
-              ${catBadge(e.category)}
-              ${isHot ? '<span class="badge badge-hot">🔥 HOT</span>' : ''}
-            </div>
-            <div class="ev-vote-bar"><div class="ev-vote-fill" style="width:${Math.min(e.votes/3,100)}%"></div></div>
-          </div>
-          <div class="ev-card-body">
-            <div class="ev-card-meta"><span>${fmtDate(e.date)}</span><span>${e.time}</span></div>
-            <div class="ev-card-title">${e.name}</div>
-            <div class="ev-card-desc">${e.desc}</div>
-            <div class="ev-card-footer">
-              <div class="seats-bar">
-                <div class="seats-track"><div class="seats-fill ${sc}" style="width:${pct}%"></div></div>
-                <div class="seats-text">${e.registered}/${e.capacity} SEATS</div>
-              </div>
-              <div class="ev-actions" onclick="event.stopPropagation()">
-                <button class="icon-btn ${isVoted ? 'voted' : ''}" onclick="toggleVote(${e.id},this)" title="Upvote">▲ ${e.votes}</button>
-                <button class="icon-btn ${isBm ? 'bookmarked' : ''}" onclick="toggleBookmark(${e.id},this)" title="Bookmark">🔖</button>
-              </div>
-            </div>
-          </div>
+// ========================= LANDING JOBS =========================
+function initLandingJobs() {
+  const el = document.getElementById('landing-jobs');
+  el.innerHTML = state.jobs.slice(0,3).map(j=>`
+    <div class="card" style="padding:20px;cursor:pointer;" onclick="showAuth('login')">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div class="avatar" style="background:rgba(245,158,11,.12);color:var(--amber);">${j.company[0]}</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">${j.title}</div>
+          <div style="font-size:12px;color:var(--muted);">${j.company}</div>
         </div>
-      `;
-    }).join('');
-  } else {
-    grid.className = 'events-list';
-    grid.innerHTML = list.map(e => {
-      const isVoted = currentUser && votes.some(v => v.userId === currentUser.id && v.eventId === e.id);
-      const isBm = currentUser && bookmarks.some(b => b.userId === currentUser.id && b.eventId === e.id);
-      return `
-        <div class="ev-list-card" onclick="viewEvent(${e.id})">
-          <img src="${e.imageUrl}" alt="${e.name}">
-          <div class="ev-list-body">
-            <div class="ev-list-title">${e.name}</div>
-            <div class="ev-list-meta">${catBadge(e.category).replace(/class="badge /,'class="badge " style="font-size:9px;padding:2px 6px;').replace('</span>','')} &nbsp; ${fmtDate(e.date)} &bull; ${e.venue} &bull; ${e.registered}/${e.capacity} seats</div>
-          </div>
-          <div class="ev-list-actions" onclick="event.stopPropagation()">
-            <button class="icon-btn ${isVoted ? 'voted' : ''}" onclick="toggleVote(${e.id},this)" title="Upvote">▲ ${e.votes}</button>
-            <button class="icon-btn ${isBm ? 'bookmarked' : ''}" onclick="toggleBookmark(${e.id},this)" title="Bookmark">🔖</button>
-            <button class="icon-btn" onclick="viewEvent(${e.id})" title="View">→</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-};
-
-// ======================== EVENT DETAIL ========================
-const viewEvent = (id) => {
-  const e = events.find(x => x.id === id);
-  if (!e) return;
-  const isReg = currentUser && regs.some(r => r.userId === currentUser.id && r.eventId === id);
-  const isFull = e.registered >= e.capacity;
-  const pct = Math.min((e.registered / e.capacity) * 100, 100);
-  const sc = seatsClass(e.registered, e.capacity);
-
-  let regBtn = '';
-  if (!currentUser) regBtn = `<button class="btn-outline" style="width:100%;padding:12px;letter-spacing:2px;font-size:11px" onclick="closeModal('modal-detail');openModal('modal-login')">LOGIN TO REGISTER</button>`;
-  else if (isReg) {
-    const r = regs.find(r => r.userId === currentUser.id && r.eventId === id);
-    regBtn = `<div class="qr-section visible"><div class="qr-title">// Your Ticket</div><div class="qr-box"><div class="qr-code" id="qr-${id}">${renderQR()}</div><div class="qr-info"><div class="qr-id">#${r.ticketId}</div><div class="qr-name">${currentUser.name}<br>${currentUser.dept}</div><div style="margin-top:8px"><span class="status-chip status-confirmed">CONFIRMED</span></div></div></div></div>`;
-  }
-  else if (isFull) regBtn = `<button disabled style="width:100%;padding:12px;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);color:var(--danger);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px">// EVENT FULL</button>`;
-  else regBtn = `<button class="btn-primary" style="width:100%;padding:12px;letter-spacing:2px;font-size:11px" onclick="registerEvent(${id})">REGISTER NOW →</button>`;
-
-  const commentsHtml = (e.comments || []).map(c => `<div class="comment-item"><div class="comment-user">@${c.user}</div><div class="comment-text">${c.text}</div></div>`).join('') || '<div style="color:var(--muted);font-size:13px;font-family:\'Space Mono\',monospace;font-size:11px">No comments yet. Be first!</div>';
-
-  document.getElementById('detail-content').innerHTML = `
-    <img class="ev-detail-img" src="${e.imageUrl}" alt="${e.name}">
-    <div class="ev-detail-cats">${catBadge(e.category)}</div>
-    <div class="ev-detail-body">
-      <div class="ev-detail-title">${e.name}</div>
-      <div class="ev-info-grid">
-        <div class="ev-info-box"><div class="ev-info-label">Date</div><div class="ev-info-val">${fmtDate(e.date)}</div></div>
-        <div class="ev-info-box"><div class="ev-info-label">Time</div><div class="ev-info-val">${e.time}</div></div>
-        <div class="ev-info-box"><div class="ev-info-label">Venue</div><div class="ev-info-val">${e.venue}</div></div>
-        <div class="ev-info-box"><div class="ev-info-label">Organizer</div><div class="ev-info-val">${e.organizer}</div></div>
       </div>
-      <p style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:16px">${e.desc}</p>
-      <div style="margin-bottom:8px;display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)"><span>CAPACITY</span><span>${e.registered} / ${e.capacity}</span></div>
-      <div class="seats-track" style="height:4px;margin-bottom:20px"><div class="seats-fill ${sc}" style="width:${pct}%"></div></div>
-      ${regBtn}
-      <div class="comments-section">
-        <div class="comments-title">// Q&A & Comments (${(e.comments||[]).length})</div>
-        <div class="comment-list">${commentsHtml}</div>
-        ${currentUser ? `<div class="comment-form"><input class="comment-input" id="comment-input-${id}" placeholder="Ask a question or leave a comment..."><button class="btn-primary" onclick="addComment(${id})" style="white-space:nowrap;font-size:10px">Post</button></div>` : `<div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)"><a href="#" onclick="closeModal('modal-detail');openModal('modal-login')" style="color:var(--accent)">Login</a> to comment</div>`}
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+        <span class="badge badge-amber">${j.type}</span>
+        <span class="badge badge-gray">📍 ${j.location}</span>
+        <span class="badge badge-gray">${j.experience}</span>
+      </div>
+      <div style="font-size:13px;color:#D1D5DB;margin-bottom:12px;line-height:1.5;">${j.description.slice(0,100)}...</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-weight:700;font-size:14px;color:var(--amber);">${j.salary}</span>
+        <button class="btn-outline" style="padding:5px 14px;border-radius:6px;font-size:12px;">Apply →</button>
       </div>
     </div>
-  `;
-  openModal('modal-detail');
-};
+  `).join('');
+}
 
-const renderQR = () => {
-  // Generate a deterministic-looking QR grid pattern
-  const size = 7;
-  let html = '';
-  const pattern = [1,1,1,1,1,1,1,1,0,1,0,1,0,1,1,0,1,1,1,0,1,1,0,1,0,1,0,1,1,0,1,1,1,0,1,1,0,1,0,1,0,1,1,1,1,1,1,1,1];
-  for(let i = 0; i < size*size; i++) {
-    const isWhite = Math.random() > 0.6 && !(pattern[i]);
-    html += `<div class="qr-pixel ${isWhite ? 'white' : ''}"></div>`;
-  }
-  return html;
-};
-
-// ======================== ACTIONS ========================
-const registerEvent = (id) => {
-  if (!currentUser) return openModal('modal-login');
-  const e = events.find(x => x.id === id);
-  if (!e || e.registered >= e.capacity) return;
-  e.registered++;
-  const ticketId = uid();
-  regs.push({ userId: currentUser.id, eventId: id, date: new Date().toISOString(), ticketId });
-  // Give points
-  const u = users.find(x => x.id === currentUser.id);
-  if (u) { u.points = (u.points || 0) + 10; u.eventsJoined = (u.eventsJoined || 0) + 1; }
-  currentUser = users.find(x => x.id === currentUser.id) || currentUser;
-  save();
-  closeModal('modal-detail');
-  toast('Registered! Ticket ID: #' + ticketId);
-  renderEvents();
-  renderHome();
-};
-
-const toggleVote = (id, btn) => {
-  if (!currentUser) { toast('Login to vote!', false); return; }
-  const eIdx = events.findIndex(x => x.id === id);
-  const already = votes.findIndex(v => v.userId === currentUser.id && v.eventId === id);
-  if (already > -1) {
-    votes.splice(already, 1);
-    events[eIdx].votes--;
-    btn.className = btn.className.replace(' voted','');
-    toast('Vote removed');
-  } else {
-    votes.push({ userId: currentUser.id, eventId: id });
-    events[eIdx].votes++;
-    btn.classList.add('voted');
-    toast('Upvoted! 🔥');
-  }
-  btn.textContent = '▲ ' + events[eIdx].votes;
-  save();
-  renderLeaderboard();
-};
-
-const toggleBookmark = (id, btn) => {
-  if (!currentUser) { toast('Login to bookmark!', false); return; }
-  const already = bookmarks.findIndex(b => b.userId === currentUser.id && b.eventId === id);
-  if (already > -1) {
-    bookmarks.splice(already, 1);
-    btn.classList.remove('bookmarked');
-    toast('Bookmark removed');
-  } else {
-    bookmarks.push({ userId: currentUser.id, eventId: id });
-    btn.classList.add('bookmarked');
-    toast('Bookmarked! 🔖');
-  }
-  save();
-};
-
-const addComment = (id) => {
-  const input = document.getElementById('comment-input-' + id);
-  if (!input || !input.value.trim()) return;
-  const e = events.find(x => x.id === id);
-  if (!e) return;
-  e.comments = e.comments || [];
-  e.comments.push({ user: currentUser.name, text: input.value.trim() });
-  save();
-  toast('Comment posted!');
-  viewEvent(id); // re-render
-};
-
-// ======================== LEADERBOARD ========================
-const renderLeaderboard = () => {
-  const sorted = [...users].sort((a, b) => (b.points || 0) - (a.points || 0)).slice(0, 20);
-  if (sorted.length === 0) {
-    document.getElementById('lb-body').innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:40px;font-family:'Space Mono',monospace;font-size:11px">// No data yet. Register for events to earn points!</td></tr>`;
-    return;
-  }
-  const max = sorted[0]?.points || 1;
-  document.getElementById('lb-body').innerHTML = sorted.map((u, i) => {
-    const pts = u.points || 0;
-    const rClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    return `
-      <tr>
-        <td><span class="lb-rank ${rClass}">${i+1}</span></td>
-        <td><div class="lb-name">${u.name}</div></td>
-        <td><div class="lb-dept">${u.dept || '—'}</div></td>
-        <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted)">${u.eventsJoined || 0}</td>
-        <td><span class="lb-points">${pts} pts</span></td>
-        <td><div class="lb-bar-wrap"><div class="lb-bar"><div class="lb-bar-fill" style="width:${(pts/max)*100}%"></div></div></div></td>
-      </tr>
-    `;
+// ========================= SEEKER DASHBOARD =========================
+function initSeekerDash() {
+  const u = state.currentUser;
+  const initials = u.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('seeker-avatar-nav').textContent = initials;
+  document.getElementById('s-avatar-big').textContent = initials;
+  document.getElementById('s-profile-name').textContent = u.name;
+  document.getElementById('s-profile-email').textContent = u.email;
+  document.getElementById('p-name').value = u.name;
+  document.getElementById('p-email').value = u.email;
+  updateSeekerStats();
+  renderRecentApps();
+  renderJobs();
+  renderAppsTable('all');
+  renderNotifications();
+}
+function seekerTab(tab) {
+  ['home','jobs','applications','profile','notifications'].forEach(t => {
+    document.getElementById('stab-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('snav-'+t).classList.toggle('active', t===tab);
+  });
+  const titles = {home:'Dashboard',jobs:'Browse Jobs',applications:'My Applications',profile:'My Profile',notifications:'Notifications'};
+  document.getElementById('seeker-page-title').textContent = titles[tab];
+  if(tab==='jobs') renderJobs();
+}
+function updateSeekerStats() {
+  const myApps = state.applications.filter(a=>a.userId===state.currentUser.id);
+  document.getElementById('s-stat-apps').textContent = myApps.length;
+  document.getElementById('s-stat-short').textContent = myApps.filter(a=>a.status==='Shortlisted').length;
+  document.getElementById('s-stat-pend').textContent = myApps.filter(a=>a.status==='Pending').length;
+  const unread = state.notifications.filter(n=>!n.read).length;
+  document.getElementById('notif-dot-s').style.display = unread?'inline-block':'none';
+}
+function renderRecentApps() {
+  const myApps = state.applications.filter(a=>a.userId===state.currentUser.id).slice(0,3);
+  const el = document.getElementById('seeker-recent-apps');
+  if(!myApps.length){ el.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">No applications yet. Browse jobs to get started!</p>'; return; }
+  el.innerHTML = myApps.map(a=>{
+    const job = state.jobs.find(j=>j.id===a.jobId);
+    return job ? `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar" style="background:rgba(245,158,11,.1);color:var(--amber);">${job.company[0]}</div>
+        <div><div style="font-weight:600;font-size:13px;">${job.title}</div><div style="font-size:11px;color:var(--muted);">${job.company} · ${a.date}</div></div>
+      </div>
+      ${statusBadge(a.status)}
+    </div>` : '';
   }).join('');
-};
-
-// ======================== AUTH ========================
-const handleLogin = (e) => {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const u = users.find(x => x.email === fd.get('email') && x.password === fd.get('password'));
-  if (!u) { toast('Invalid credentials', false); return; }
-  currentUser = u;
-  save();
-  updateUIAuth();
-  closeModal('modal-login');
-  toast('Welcome back, ' + u.name + '!');
-  e.target.reset();
-};
-
-const handleRegister = (e) => {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  if (users.some(x => x.email === fd.get('email'))) { toast('Email already registered!', false); return; }
-  const newUser = { id: Date.now(), name: fd.get('name'), email: fd.get('email'), password: fd.get('password'), role: fd.get('role'), dept: fd.get('dept'), points: 0, eventsJoined: 0 };
-  users.push(newUser);
-  currentUser = newUser;
-  save();
-  updateUIAuth();
-  closeModal('modal-register');
-  toast('Account created! +0 pts to start');
-  e.target.reset();
-};
-
-const handleCreateEvent = (e) => {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  events.push({
-    id: Date.now(), name: fd.get('name'), date: fd.get('date'), time: fd.get('time'),
-    venue: fd.get('venue'), category: fd.get('category'), desc: fd.get('description'),
-    capacity: parseInt(fd.get('capacity')), registered: 0,
-    imageUrl: fd.get('imageUrl') || `https://picsum.photos/seed/${Date.now()}/800/400`,
-    organizer: currentUser.name, organizerId: currentUser.id, votes: 0, comments: []
+}
+function renderJobs() {
+  const search = (document.getElementById('job-search')||{}).value?.toLowerCase()||'';
+  const cat = (document.getElementById('job-cat')||{}).value||'';
+  const loc = (document.getElementById('job-loc')||{}).value||'';
+  const filtered = state.jobs.filter(j=>j.active&&
+    (!search||(j.title+j.skills.join(' ')+j.description).toLowerCase().includes(search))&&
+    (!cat||j.category===cat)&&
+    (!loc||j.location===loc));
+  const el = document.getElementById('jobs-list');
+  if(!el) return;
+  if(!filtered.length){ el.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">No jobs found matching your criteria.</div>'; return; }
+  el.innerHTML = filtered.map(j=>{
+    const applied = state.applications.some(a=>a.jobId===j.id&&a.userId===(state.currentUser?.id));
+    return `<div class="card" style="padding:20px;cursor:pointer;" onclick="openJobModal(${j.id})">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" style="background:rgba(245,158,11,.12);color:var(--amber);">${j.company[0]}</div>
+          <div><div style="font-weight:700;font-size:14px;">${j.title}</div><div style="font-size:12px;color:var(--muted);">${j.company}</div></div>
+        </div>
+        ${applied?'<span class="badge badge-green">Applied ✓</span>':''}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+        <span class="badge badge-amber">${j.type}</span>
+        <span class="badge badge-gray">📍 ${j.location}</span>
+        <span class="badge badge-blue">${j.category}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">${j.skills.slice(0,3).map(s=>`<span class="chip">${s}</span>`).join('')}</div>
+      <hr class="divider"/>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;">
+        <span style="font-weight:700;font-size:14px;color:var(--amber);">${j.salary}</span>
+        <span style="font-size:11px;color:var(--muted);">${j.experience}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderAppsTable(filter='all') {
+  const myApps = state.applications.filter(a=>{
+    if(a.userId!==state.currentUser.id) return false;
+    if(filter!=='all'&&a.status!==filter) return false;
+    return true;
   });
-  save();
-  closeModal('modal-create-event');
-  toast('Event published!');
-  renderEvents();
-  renderHome();
-  renderDashboard();
-  e.target.reset();
-};
-
-const deleteEvent = (id) => {
-  if (!confirm('Delete this event?')) return;
-  events = events.filter(x => x.id !== id);
-  regs = regs.filter(x => x.eventId !== id);
-  save();
-  toast('Event deleted', false);
-  renderEvents();
-  renderDashboard();
-};
-
-const cancelReg = (id) => {
-  const idx = regs.findIndex(r => r.userId === currentUser.id && r.eventId === id);
-  if (idx < 0) return;
-  const e = events.find(x => x.id === id);
-  if (e) e.registered = Math.max(0, e.registered - 1);
-  const u = users.find(x => x.id === currentUser.id);
-  if (u) { u.points = Math.max(0, (u.points||0) - 10); u.eventsJoined = Math.max(0, (u.eventsJoined||0) - 1); }
-  currentUser = users.find(x => x.id === currentUser.id);
-  regs.splice(idx, 1);
-  save();
-  toast('Registration cancelled', false);
-  renderDashboard();
-  renderEvents();
-};
-
-const logout = () => {
-  currentUser = null;
-  save();
-  updateUIAuth();
-  showSection('home');
-  toast('Logged out');
-};
-
-const updateUIAuth = () => {
-  const authArea = document.getElementById('auth-area');
-  const userArea = document.getElementById('user-area');
-  const navDash = document.getElementById('nav-dashboard');
-  if (currentUser) {
-    authArea.style.display = 'none';
-    userArea.style.display = 'flex';
-    document.getElementById('user-greeting').textContent = currentUser.name;
-    navDash.style.display = '';
-    if (currentUser.role === 'organizer' || currentUser.role === 'admin') {
-      document.getElementById('btn-create-event').style.display = '';
-    }
-  } else {
-    authArea.style.display = '';
-    userArea.style.display = 'none';
-    navDash.style.display = 'none';
-    document.getElementById('btn-create-event').style.display = 'none';
-  }
-};
-
-// ======================== DASHBOARD ========================
-const showDashPanel = (id) => {
-  document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.dash-nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('panel-' + id).classList.add('active');
-  event.target.classList.add('active');
-};
-
-const renderDashboard = () => {
-  if (!currentUser) return;
-  const u = users.find(x => x.id === currentUser.id) || currentUser;
-
-  // User card
-  const initials = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-  document.getElementById('dash-user-card').innerHTML = `
-    <div class="user-avatar"><div class="user-avatar-text">${initials}</div></div>
-    <div class="user-name">${u.name}</div>
-    <div class="user-role">${u.role} · ${u.dept || ''}</div>
-    <div class="user-points">
-      <div class="user-points-num">${u.points || 0}</div>
-      <div class="user-points-label">Pulse Points</div>
+  const el = document.getElementById('apps-table-container');
+  if(!myApps.length){ el.innerHTML='<p style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">No applications in this category.</p>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Job</th><th>Company</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead><tbody>
+    ${myApps.map(a=>{
+      const job=state.jobs.find(j=>j.id===a.jobId)||{};
+      return `<tr><td><span style="font-weight:600;">${job.title||'N/A'}</span></td><td style="color:var(--muted);">${job.company||'N/A'}</td><td style="color:var(--muted);">${a.date}</td><td>${statusBadge(a.status)}</td>
+      <td><button class="btn-outline" style="padding:4px 12px;border-radius:6px;font-size:11px;" onclick="openJobModal(${a.jobId})">View</button></td></tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+function filterApps(filter, el) {
+  document.querySelectorAll('#app-filter-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderAppsTable(filter);
+}
+function renderNotifications() {
+  const el = document.getElementById('notif-list');
+  if(!state.notifications.length){ el.innerHTML='<p style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">No notifications.</p>'; return; }
+  el.innerHTML = state.notifications.map(n=>`
+    <div style="padding:14px 20px;border-bottom:1px solid rgba(42,42,42,.5);display:flex;align-items:center;gap:12px;${n.read?'opacity:.55':''}">
+      <div style="width:8px;height:8px;border-radius:50%;background:${n.read?'var(--border)':'var(--amber)'};flex-shrink:0;margin-top:2px;"></div>
+      <div style="flex:1;font-size:13px;">${n.msg}</div>
+      <span style="font-size:11px;color:var(--muted);flex-shrink:0;">${n.date}</span>
     </div>
-  `;
-
-  // Show manage/reports for organizer/admin
-  if (u.role === 'organizer' || u.role === 'admin') {
-    document.getElementById('dash-manage-btn').style.display = '';
-    document.getElementById('dash-reports-btn').style.display = '';
+  `).join('');
+  updateSeekerStats();
+}
+function clearNotifications() {
+  state.notifications.forEach(n=>n.read=true);
+  renderNotifications();
+  toast('All notifications marked as read');
+}
+function saveProfile() {
+  toast('✅ Profile saved successfully!');
+  const pct = Math.min(100, parseInt(document.getElementById('profile-pct').textContent)+15);
+  document.getElementById('profile-pct').textContent = pct+'%';
+  document.getElementById('profile-bar').style.width = pct+'%';
+}
+function handleResumeUpload(input) {
+  if(input.files[0]){
+    const el = document.getElementById('resume-status');
+    el.innerHTML = `<span style="color:#4ADE80;">✓ Resume uploaded: <strong>${input.files[0].name}</strong></span>`;
+    toast('📄 Resume uploaded successfully!');
   }
+}
 
-  // My registrations
-  const myRegs = regs.filter(r => r.userId === currentUser.id);
-  if (myRegs.length === 0) {
-    document.getElementById('regs-content').innerHTML = `<div class="empty-state"><div class="empty-state-icon">🎫</div><div class="empty-state-title">No Tickets Yet</div><div class="empty-state-desc">Register for events to see your tickets here</div></div>`;
-  } else {
-    document.getElementById('regs-content').innerHTML = `<div class="dash-cards">${myRegs.map(r => {
-      const ev = events.find(x => x.id === r.eventId);
-      if (!ev) return '';
-      return `<div class="dash-ev-card">
-        <div class="dash-ev-title">${ev.name}</div>
-        <div class="dash-ev-meta">${fmtDate(ev.date)} · ${ev.time} · ${ev.venue}</div>
-        <div class="dash-ev-ticket">TICKET #${r.ticketId}</div>
-        <button class="btn-danger" onclick="cancelReg(${ev.id})">Cancel Registration</button>
-      </div>`;
-    }).join('')}</div>`;
-  }
+// ========================= JOB MODAL =========================
+function openJobModal(jobId) {
+  const job = state.jobs.find(j=>j.id===jobId);
+  if(!job) return;
+  state.selectedJobId = jobId;
+  document.getElementById('modal-logo').textContent = job.company[0];
+  document.getElementById('modal-title').textContent = job.title;
+  document.getElementById('modal-company').textContent = job.company + ' · ' + job.location;
+  document.getElementById('modal-salary').textContent = job.salary;
+  document.getElementById('modal-deadline').textContent = job.deadline || 'Open';
+  document.getElementById('modal-desc').textContent = job.description;
+  document.getElementById('modal-badges').innerHTML = `<span class="badge badge-amber">${job.type}</span><span class="badge badge-blue">${job.category}</span><span class="badge badge-gray">📍 ${job.location}</span><span class="badge badge-gray">🎯 ${job.experience}</span>`;
+  document.getElementById('modal-skills').innerHTML = job.skills.map(s=>`<span class="chip">${s}</span>`).join('');
+  const applied = state.applications.some(a=>a.jobId===jobId&&a.userId===state.currentUser?.id);
+  const btn = document.getElementById('modal-apply-btn');
+  btn.textContent = applied ? '✓ Already Applied' : 'Apply Now →';
+  btn.disabled = applied;
+  btn.style.opacity = applied ? '.5' : '1';
+  document.getElementById('job-modal').style.display='flex';
+}
+function closeJobModal() { document.getElementById('job-modal').style.display='none'; }
+function applyJob() {
+  if(!state.currentUser||state.currentUser.role!=='seeker'){ toast('Please log in as a job seeker to apply'); return; }
+  const jobId=state.selectedJobId;
+  if(state.applications.some(a=>a.jobId===jobId&&a.userId===state.currentUser.id)){ toast('Already applied!'); return; }
+  const app = { id: state.applications.length+1, jobId, userId:state.currentUser.id, status:'Pending', date: new Date().toISOString().slice(0,10) };
+  state.applications.push(app);
+  const job = state.jobs.find(j=>j.id===jobId);
+  state.notifications.unshift({ id:state.notifications.length+1, msg:`📋 Application submitted for ${job.title} at ${job.company}.`, read:false, date:new Date().toISOString().slice(0,10) });
+  toast('🎉 Application submitted for '+job.title+'!');
+  closeJobModal();
+  updateSeekerStats();
+  renderRecentApps();
+  renderJobs();
+  renderAppsTable('all');
+}
 
-  // Bookmarks
-  const myBm = bookmarks.filter(b => b.userId === currentUser.id);
-  document.getElementById('bookmarks-content').innerHTML = myBm.length === 0
-    ? `<div class="empty-state"><div class="empty-state-icon">🔖</div><div class="empty-state-title">No Bookmarks</div><div class="empty-state-desc">Click the bookmark icon on any event to save it</div></div>`
-    : `<div class="dash-cards">${myBm.map(b => {
-        const ev = events.find(x => x.id === b.eventId);
-        if (!ev) return '';
-        return `<div class="dash-ev-card" onclick="viewEvent(${ev.id})" style="cursor:pointer">
-          <div class="dash-ev-title">${ev.name}</div>
-          <div class="dash-ev-meta">${fmtDate(ev.date)} · ${ev.venue}</div>
-          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">${ev.registered}/${ev.capacity} seats · ▲ ${ev.votes} votes</div>
-        </div>`;
-      }).join('')}</div>`;
-
-  // Voted events
-  const myVotes = votes.filter(v => v.userId === currentUser.id);
-  document.getElementById('voted-content').innerHTML = myVotes.length === 0
-    ? `<div class="empty-state"><div class="empty-state-icon">▲</div><div class="empty-state-title">No Votes Yet</div><div class="empty-state-desc">Upvote events you're excited about!</div></div>`
-    : `<div class="dash-cards">${myVotes.map(v => {
-        const ev = events.find(x => x.id === v.eventId);
-        if (!ev) return '';
-        return `<div class="dash-ev-card" onclick="viewEvent(${ev.id})" style="cursor:pointer">
-          <div class="dash-ev-title">${ev.name}</div>
-          <div class="dash-ev-meta">${fmtDate(ev.date)} · ${ev.category}</div>
-          <span class="status-chip status-confirmed">▲ ${ev.votes} votes</span>
-        </div>`;
-      }).join('')}</div>`;
-
-  // Manage events
-  if (u.role === 'organizer' || u.role === 'admin') {
-    const myEvents = u.role === 'admin' ? events : events.filter(x => x.organizerId === currentUser.id);
-    document.getElementById('manage-content').innerHTML = myEvents.length === 0
-      ? `<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">No Events Created</div></div>`
-      : `<div class="dash-cards">${myEvents.map(e => `
-          <div class="dash-ev-card">
-            <div class="dash-ev-title">${e.name}</div>
-            <div class="dash-ev-meta">${fmtDate(e.date)} · ${e.registered}/${e.capacity} seats · ▲ ${e.votes}</div>
-            <button class="btn-danger" onclick="deleteEvent(${e.id})">Delete Event</button>
-          </div>`).join('')}</div>`;
-
-    // Reports table
-    document.getElementById('reports-body').innerHTML = regs.map(r => {
-      const ev = events.find(x => x.id === r.eventId);
-      const usr = users.find(x => x.id === r.userId);
-      if (!ev || !usr) return '';
+// ========================= EMPLOYER DASHBOARD =========================
+function initEmployerDash() {
+  updateEmployerStats();
+  renderEmpListingsPreview();
+  renderEmpFullListings();
+  renderEmployerApplicants();
+  initAppJobFilter();
+}
+function employerTab(tab) {
+  ['home','post','listings','applicants'].forEach(t=>{
+    document.getElementById('etab-'+t).style.display=t===tab?'block':'none';
+    document.getElementById('enav-'+t).classList.toggle('active',t===tab);
+  });
+  const titles={home:'Dashboard',post:'Post a Job',listings:'My Listings',applicants:'Applicants'};
+  document.getElementById('emp-page-title').textContent=titles[tab];
+  if(tab==='listings') renderEmpFullListings();
+  if(tab==='applicants'){ initAppJobFilter(); renderEmployerApplicants(); }
+}
+function updateEmployerStats() {
+  const myJobs = state.jobs.filter(j=>j.employerId===state.currentUser.id||state.currentUser.role==='employer');
+  const myJobIds = myJobs.map(j=>j.id);
+  const totalApps = state.applications.filter(a=>myJobIds.includes(a.jobId));
+  document.getElementById('e-stat-jobs').textContent = myJobs.filter(j=>j.active).length;
+  document.getElementById('e-stat-apps').textContent = totalApps.length;
+  document.getElementById('e-stat-short').textContent = totalApps.filter(a=>a.status==='Shortlisted').length;
+}
+function renderEmpListingsPreview() {
+  const myJobs=state.jobs.slice(0,4);
+  document.getElementById('emp-listings-preview').innerHTML=myJobs.length?`<table>
+    <thead><tr><th>Title</th><th>Category</th><th>Location</th><th>Applications</th><th>Status</th></tr></thead>
+    <tbody>${myJobs.map(j=>{
+      const apps=state.applications.filter(a=>a.jobId===j.id);
+      return `<tr><td><span style="font-weight:600;">${j.title}</span></td><td style="color:var(--muted);">${j.category}</td><td style="color:var(--muted);">${j.location}</td><td><span class="badge badge-blue">${apps.length} apps</span></td><td>${j.active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Closed</span>'}</td></tr>`;
+    }).join('')}</tbody>
+  </table>`:'<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">No jobs posted yet.</p>';
+}
+function renderEmpFullListings() {
+  const el=document.getElementById('emp-full-listings');
+  const myJobs=state.jobs;
+  el.innerHTML=myJobs.map(j=>`
+    <div class="card" style="padding:20px;margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h3 style="margin:0 0 4px;font-size:15px;font-weight:800;">${j.title}</h3>
+          <p style="margin:0;font-size:12px;color:var(--muted);">${j.category} · ${j.location} · ${j.type}</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          ${j.active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Closed</span>'}
+          <button class="btn-outline" style="padding:6px 14px;border-radius:7px;font-size:12px;" onclick="toggleJobStatus(${j.id})">${j.active?'Close':'Reopen'}</button>
+          <button style="background:rgba(239,68,68,.12);color:#F87171;border:1px solid rgba(239,68,68,.25);padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;" onclick="deleteJob(${j.id})">Delete</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">
+        ${j.skills.map(s=>`<span class="chip">${s}</span>`).join('')}
+      </div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--muted);">
+        <span>💰 ${j.salary}</span>
+        <span>📅 Deadline: ${j.deadline||'Open'}</span>
+        <span>👥 ${state.applications.filter(a=>a.jobId===j.id).length} applicant(s)</span>
+      </div>
+    </div>
+  `).join('');
+}
+function toggleJobStatus(jobId) {
+  const job=state.jobs.find(j=>j.id===jobId);
+  if(job){ job.active=!job.active; renderEmpFullListings(); updateEmployerStats(); toast(`Job ${job.active?'activated':'closed'}: ${job.title}`); }
+}
+function deleteJob(jobId) {
+  const idx=state.jobs.findIndex(j=>j.id===jobId);
+  if(idx>-1){ const t=state.jobs[idx].title; state.jobs.splice(idx,1); renderEmpFullListings(); renderJobs(); updateEmployerStats(); toast(`Job deleted: ${t}`); }
+}
+function postJob() {
+  const title=document.getElementById('j-title').value.trim();
+  const desc=document.getElementById('j-desc').value.trim();
+  if(!title||!desc){ toast('Please fill in Job Title and Description'); return; }
+  const job={
+    id: state.jobs.length+1,
+    title, company:state.currentUser.name, employerId:state.currentUser.id,
+    category:document.getElementById('j-cat').value,
+    location:document.getElementById('j-loc').value||'Remote',
+    salary:document.getElementById('j-salary').value||'Competitive',
+    experience:document.getElementById('j-exp').value,
+    type:document.getElementById('j-type').value,
+    skills:document.getElementById('j-skills').value.split(',').map(s=>s.trim()).filter(Boolean),
+    description:desc,
+    deadline:document.getElementById('j-deadline').value||'',
+    posted:new Date().toISOString().slice(0,10),
+    active:true,
+  };
+  state.jobs.push(job);
+  toast('🎉 Job published: '+title);
+  ['j-title','j-loc','j-salary','j-skills','j-desc'].forEach(id=>document.getElementById(id).value='');
+  updateEmployerStats();
+  employerTab('listings');
+}
+function initAppJobFilter() {
+  const sel=document.getElementById('app-job-filter');
+  if(!sel) return;
+  sel.innerHTML='<option value="">All Jobs</option>'+state.jobs.map(j=>`<option value="${j.id}">${j.title}</option>`).join('');
+}
+function renderEmployerApplicants() {
+  const filterJobId=parseInt(document.getElementById('app-job-filter')?.value)||0;
+  const apps=state.applications.filter(a=>!filterJobId||a.jobId===filterJobId);
+  const el=document.getElementById('applicants-table');
+  if(!el) return;
+  if(!apps.length){ el.innerHTML='<p style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">No applicants found.</p>'; return; }
+  el.innerHTML=`<table>
+    <thead><tr><th>Applicant</th><th>Job</th><th>Applied</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>${apps.map(a=>{
+      const job=state.jobs.find(j=>j.id===a.jobId)||{};
+      const user=state.users.find(u=>u.id===a.userId)||{};
+      const initials=(user.name||'U').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
       return `<tr>
-        <td>${usr.name} <span style="color:var(--muted);font-size:11px">(${usr.dept})</span></td>
-        <td>${ev.name}</td>
-        <td style="font-family:'Space Mono',monospace;font-size:11px">${fmtDate(r.date)}</td>
-        <td style="font-family:'Space Mono',monospace;font-size:11px;color:var(--accent)">+10 pts</td>
-        <td><span class="status-chip status-confirmed">Confirmed</span></td>
+        <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="background:rgba(245,158,11,.1);color:var(--amber);">${initials}</div><div><div style="font-weight:600;font-size:13px;">${user.name||'User'}</div><div style="font-size:11px;color:var(--muted);">${user.email||''}</div></div></div></td>
+        <td style="font-size:13px;">${job.title||'N/A'}</td>
+        <td style="color:var(--muted);font-size:12px;">${a.date}</td>
+        <td>${statusBadge(a.status)}</td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button style="background:rgba(34,197,94,.12);color:#4ADE80;border:1px solid rgba(34,197,94,.25);padding:4px 11px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600;" onclick="updateAppStatus(${a.id},'Shortlisted')">✓ Shortlist</button>
+            <button style="background:rgba(239,68,68,.12);color:#F87171;border:1px solid rgba(239,68,68,.25);padding:4px 11px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600;" onclick="updateAppStatus(${a.id},'Rejected')">✕ Reject</button>
+          </div>
+        </td>
       </tr>`;
-    }).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;font-family:'Space Mono',monospace;font-size:11px">No registrations recorded yet</td></tr>`;
-  }
-};
+    }).join('')}
+  </tbody></table>`;
+}
+function updateAppStatus(appId, status) {
+  const app=state.applications.find(a=>a.id===appId);
+  if(!app){ toast('Application not found'); return; }
+  app.status=status;
+  const job=state.jobs.find(j=>j.id===app.jobId)||{};
+  const emoji=status==='Shortlisted'?'🎉':'❌';
+  state.notifications.unshift({ id:state.notifications.length+1, msg:`${emoji} Your application for ${job.title} has been ${status.toLowerCase()}.`, read:false, date:new Date().toISOString().slice(0,10) });
+  toast(`Applicant ${status.toLowerCase()} for ${job.title}`);
+  renderEmployerApplicants();
+  updateEmployerStats();
+}
 
-// ======================== INIT ========================
-document.addEventListener('DOMContentLoaded', () => {
-  updateUIAuth();
-  renderHome();
-  renderEvents();
-  renderLeaderboard();
-  initTicker();
-});
+// ========================= ADMIN DASHBOARD =========================
+function initAdminDash() {
+  document.getElementById('a-stat-users').textContent = state.users.length;
+  document.getElementById('a-stat-jobs').textContent = state.jobs.filter(j=>j.active).length;
+  document.getElementById('a-stat-apps').textContent = state.applications.length;
+  renderAdminActivity();
+  renderAdminUsers();
+  renderAdminJobs();
+}
+function adminTab(tab) {
+  ['overview','users','jobs'].forEach(t=>{
+    document.getElementById('atab-'+t).style.display=t===tab?'block':'none';
+    document.getElementById('anav-'+t).classList.toggle('active',t===tab);
+  });
+}
+function renderAdminActivity() {
+  const acts=[
+    'New user registered: seeker@demo.com',
+    'Job posted: Senior React Developer by TechCorp',
+    'Application submitted for UI/UX Designer',
+    'Applicant shortlisted for Data Scientist',
+    'Job posted: Java Backend Engineer by FinTech',
+  ];
+  document.getElementById('admin-activity').innerHTML=acts.map(a=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;color:#D1D5DB;">
+      <div style="width:6px;height:6px;background:var(--amber);border-radius:50%;flex-shrink:0;"></div>${a}
+    </div>
+  `).join('');
+}
+function renderAdminUsers() {
+  document.getElementById('admin-users-table').innerHTML=`<table>
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead>
+    <tbody>${state.users.map(u=>`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="background:rgba(245,158,11,.1);color:var(--amber);">${u.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()}</div><span style="font-weight:600;font-size:13px;">${u.name}</span></div></td>
+      <td style="color:var(--muted);font-size:13px;">${u.email}</td>
+      <td>${u.role==='seeker'?'<span class="badge badge-blue">Job Seeker</span>':u.role==='employer'?'<span class="badge badge-amber">Employer</span>':'<span class="badge badge-red">Admin</span>'}</td>
+      <td><span class="badge badge-green">Active</span></td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+function renderAdminJobs() {
+  document.getElementById('admin-jobs-table').innerHTML=`<table>
+    <thead><tr><th>Title</th><th>Company</th><th>Category</th><th>Apps</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>${state.jobs.map(j=>`<tr>
+      <td><span style="font-weight:600;font-size:13px;">${j.title}</span></td>
+      <td style="color:var(--muted);font-size:12px;">${j.company}</td>
+      <td style="font-size:12px;">${j.category}</td>
+      <td><span class="badge badge-blue">${state.applications.filter(a=>a.jobId===j.id).length}</span></td>
+      <td>${j.active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Closed</span>'}</td>
+      <td><button style="background:rgba(239,68,68,.12);color:#F87171;border:1px solid rgba(239,68,68,.25);padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;" onclick="adminDeleteJob(${j.id})">Remove</button></td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+function adminDeleteJob(jobId) {
+  const idx=state.jobs.findIndex(j=>j.id===jobId);
+  if(idx>-1){ state.jobs.splice(idx,1); initAdminDash(); toast('Job removed by admin'); }
+}
+
+// ========================= HELPERS =========================
+function statusBadge(s) {
+  const map={Pending:'badge-blue',Shortlisted:'badge-green',Rejected:'badge-red'};
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+function toast(msg) {
+  const el=document.getElementById('toast');
+  const item=document.createElement('div');
+  item.className='toast-item';
+  item.textContent=msg;
+  el.appendChild(item);
+  setTimeout(()=>{ item.style.opacity='0'; item.style.transition='opacity .3s'; setTimeout(()=>item.remove(),350); },3500);
+}
+
+// ========================= INIT =========================
+initTicker();
+initLandingJobs();
+// Set default date for job deadline
+const tomorrow=new Date(); tomorrow.setDate(tomorrow.getDate()+30);
+setTimeout(()=>{ const d=document.getElementById('j-deadline'); if(d) d.value=tomorrow.toISOString().slice(0,10); },100);
 </script>
 </body>
 </html>
