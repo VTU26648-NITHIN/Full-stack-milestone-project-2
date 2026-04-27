@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VEL TECH 2026</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0a0a0f;
+      color: #e8e4f0;
+    }
+
+    .title-font { font-family: 'Syne', sans-serif; }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {opacity:0; transform:translateY(20px);}
+      to {opacity:1; transform:translateY(0);}
+    }
+
+    @keyframes pop {
+      0% {transform: scale(0.8); opacity:0;}
+      100% {transform: scale(1); opacity:1;}
+    }
+
+    .animate-fade { animation: fadeIn 0.8s ease forwards; }
+    .animate-pop { animation: pop 0.4s ease forwards; }
+  </style>
+</head>
+
+<body class="min-h-screen">
+
+<div class="max-w-6xl mx-auto p-6">
+
+  <!-- HERO -->
+  <div class="mb-10 animate-fade">
+    <div class="text-yellow-400 text-sm mb-4">● Registration Open</div>
+
+    <h1 class="title-font text-6xl md:text-8xl font-extrabold leading-none">
+      Tech<span class="text-yellow-400 block">Nova</span>
+    </h1>
+
+    <div class="text-6xl md:text-8xl font-extrabold text-transparent stroke text-gray-500">
+      2026
+    </div>
+
+    <div class="flex flex-wrap gap-3 mt-6 text-sm text-gray-400">
+      <span class="bg-white/5 px-4 py-2 rounded">📅 May 10, 2026</span>
+      <span class="bg-white/5 px-4 py-2 rounded">📍 Main Auditorium</span>
+      <span class="bg-white/5 px-4 py-2 rounded">⏰ 10AM - 5PM</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="grid md:grid-cols-2 gap-8">
+
+    <!-- EVENT CARD -->
+    <div class="bg-white/5 p-6 rounded-2xl border border-white/10 animate-fade">
+      <h2 class="title-font text-2xl font-bold mb-2">
+        TechNova 2026
+        <span id="soldOutBadge" class="hidden text-red-400 text-xs ml-2">SOLD OUT</span>
+      </h2>
+
+      <p class="text-yellow-400 text-sm mb-6">Department of CSE</p>
+
+      <div class="mb-6">
+        <p class="text-sm text-gray-400">Price</p>
+        <p class="text-2xl text-yellow-400 font-bold">₹199</p>
+      </div>
+
+      <div>
+        <p class="text-sm text-gray-400">Available Tickets</p>
+        <p id="available" class="text-2xl text-green-400 font-bold">120</p>
+
+        <div class="w-full bg-gray-800 h-2 rounded mt-2">
+          <div id="progress" class="h-2 bg-yellow-400 rounded transition-all duration-500" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="bg-white/5 p-6 rounded-2xl border border-white/10 animate-fade">
+
+      <h2 class="title-font text-xl font-bold mb-6">Book Tickets</h2>
+
+      <div class="space-y-4">
+
+        <input id="name" placeholder="Full Name"
+          class="w-full p-3 rounded bg-white/10 border border-white/10 focus:border-yellow-400 outline-none"/>
+
+        <input id="email" placeholder="Email"
+          class="w-full p-3 rounded bg-white/10 border border-white/10 focus:border-yellow-400 outline-none"/>
+
+        <select id="dept"
+          class="w-full p-3 rounded bg-white/10 border border-white/10 focus:border-yellow-400 outline-none">
+          <option value="">Select Department</option>
+          <option>CSE</option>
+          <option>ECE</option>
+          <option>Mechanical</option>
+          <option>Civil</option>
+        </select>
+
+        <input id="tickets" type="number" placeholder="Tickets"
+          class="w-full p-3 rounded bg-white/10 border border-white/10 focus:border-yellow-400 outline-none"/>
+
+        <button onclick="book()"
+          class="w-full bg-yellow-400 text-black font-bold p-3 rounded hover:scale-105 transition">
+          Confirm Booking →
+        </button>
+
+        <p id="error" class="text-red-400 text-sm"></p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div id="modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center">
+
+  <div class="bg-gray-900 p-8 rounded-2xl text-center animate-pop w-80">
+
+    <div class="text-green-400 text-4xl mb-4">✓</div>
+
+    <h2 class="title-font text-2xl font-bold mb-2">Booking Confirmed</h2>
+
+    <p id="summary" class="text-gray-400 mb-4"></p>
+
+    <p class="text-yellow-400 font-bold mb-6" id="ref"></p>
+
+    <button onclick="closeModal()"
+      class="bg-white/10 px-4 py-2 rounded hover:bg-white/20">
+      Close
+    </button>
+  </div>
+</div>
+
+<script>
+const EVENT = {
+  price: 199,
+  total: 120
+};
+
+let available = 120;
+
+function book() {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const dept = document.getElementById("dept").value;
+  const tickets = parseInt(document.getElementById("tickets").value);
+
+  const error = document.getElementById("error");
+
+  if (!name || name.length < 2) return error.innerText = "Enter valid name";
+  if (!email.includes("@")) return error.innerText = "Enter valid email";
+  if (!dept) return error.innerText = "Select department";
+  if (!tickets || tickets <= 0) return error.innerText = "Enter valid tickets";
+  if (tickets > available) return error.innerText = "Not enough tickets";
+
+  error.innerText = "";
+
+  available -= tickets;
+
+  document.getElementById("available").innerText = available;
+
+  const pct = ((EVENT.total - available) / EVENT.total) * 100;
+  document.getElementById("progress").style.width = pct + "%";
+
+  const ref = "TN-" + Math.random().toString(36).substr(2,6).toUpperCase();
+
+  document.getElementById("summary").innerText =
+    `${tickets} ticket(s) booked for ${name}`;
+
+  document.getElementById("ref").innerText = ref;
+
+  document.getElementById("modal").classList.remove("hidden");
+
+  if (available === 0) {
+    document.getElementById("soldOutBadge").classList.remove("hidden");
+  }
+}
+
+function closeModal() {
+  document.getElementById("modal").classList.add("hidden");
+}
+</script>
+
+</body>
+</html>
